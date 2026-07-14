@@ -1,0 +1,232 @@
+:root {
+  color-scheme: light;
+
+  --tuodonto-ivory: #f5f2ec;
+  --tuodonto-porcelain: #ffffff;
+  --tuodonto-pearl: #f7f6f3;
+  --tuodonto-mist: #e9f7fb;
+  --tuodonto-sky: #d9f7fd;
+  --tuodonto-sky-strong: #03d2f6;
+  /* Alias historicos: ahora expresan la identidad azul de COISalud Laser. */
+  --tuodonto-gold: #0350e1;
+  --tuodonto-gold-light: #67e6fb;
+  --tuodonto-gold-deep: #012f81;
+  --tuodonto-champagne: #b9eef7;
+  --tuodonto-taupe: #596071;
+  --tuodonto-brown: #041543;
+  --tuodonto-ink: #0e1220;
+  --tuodonto-muted: #697083;
+  --tuodonto-line: rgba(3, 80, 225, 0.2);
+  --tuodonto-blue-line: rgba(3, 210, 246, 0.34);
+  --tuodonto-danger: #b85247;
+  --tuodonto-success: #187f70;
+  --tuodonto-warning: #c2862c;
+
+  --background: var(--tuodonto-ivory);
+  --foreground: var(--tuodonto-ink);
+  --card: rgba(255, 255, 255, 0.72);
+  --card-foreground: var(--tuodonto-ink);
+  --popover: rgba(255, 255, 255, 0.92);
+  --popover-foreground: var(--tuodonto-ink);
+  --primary: var(--tuodonto-gold);
+  --primary-foreground: #ffffff;
+  --secondary: var(--tuodonto-sky);
+  --secondary-foreground: var(--tuodonto-brown);
+  --muted: #e9edf5;
+  --muted-foreground: var(--tuodonto-muted);
+  --accent: var(--tuodonto-sky);
+  --accent-foreground: var(--tuodonto-brown);
+  --destructive: var(--tuodonto-danger);
+  --border: rgba(4, 21, 67, 0.14);
+  --input: rgba(4, 21, 67, 0.18);
+  --ring: var(--tuodonto-sky-strong);
+  --radius: 1.15rem;
+
+  --chart-1: var(--tuodonto-gold);
+  --chart-2: var(--tuodonto-sky-strong);
+  --chart-3: #012f81;
+  --chart-4: #67e6fb;
+  --chart-5: #596071;
+
+  --sidebar: rgba(247, 246, 243, 0.92);
+  --sidebar-foreground: var(--tuodonto-brown);
+  --sidebar-primary: var(--tuodonto-gold);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(215, 238, 246, 0.72);
+  --sidebar-accent-foreground: var(--tuodonto-brown);
+  --sidebar-border: rgba(3, 80, 225, 0.18);
+  --sidebar-ring: var(--tuodonto-sky-strong);
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-body: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body);
+
+  --space-page-x: clamp(1rem, 4vw, 4rem);
+  --space-section-y: clamp(4rem, 9vw, 9rem);
+  --rail-width: clamp(11rem, 14vw, 14rem);
+  --admin-rail: clamp(13rem, 16vw, 16.5rem);
+  --glass-blur: 22px;
+  --motion-soft: 560ms cubic-bezier(.21, .86, .28, .99);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(3, 210, 246, .14), transparent 34rem),
+    linear-gradient(120deg, #f5f2ec 0%, #ffffff 45%, #edf4ff 100%);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  text-rendering: geometricPrecision;
+}
+
+::selection {
+  background: rgba(3, 210, 246, 0.3);
+  color: var(--tuodonto-ink);
+}
+
+.tuodonto-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.tuodonto-eyebrow {
+  color: var(--tuodonto-gold);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+
+.tuodonto-glass {
+  background: linear-gradient(135deg, rgba(255,255,255,.78), rgba(3,210,246,.12));
+  border: 1px solid rgba(255,255,255,.72);
+  box-shadow: 0 24px 72px rgba(4, 21, 67, .11), inset 0 1px 0 rgba(255,255,255,.8);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.tuodonto-frost {
+  background: rgba(255, 255, 255, .58);
+  backdrop-filter: blur(18px);
+}
+
+.tuodonto-gold-text {
+  background: linear-gradient(120deg, var(--tuodonto-gold-deep), var(--tuodonto-sky-strong), var(--tuodonto-gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tuodonto-gold-fill {
+  background: linear-gradient(135deg, #0d58f0 0%, #0350e1 56%, #012f81 100%);
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(3, 80, 225, .24);
+}
+
+.tuodonto-sky-fill {
+  background: linear-gradient(135deg, #effcff 0%, var(--tuodonto-sky) 100%);
+  color: var(--tuodonto-brown);
+}
+
+.tuodonto-orbit {
+  position: absolute;
+  pointer-events: none;
+  border: 1px solid rgba(3, 80, 225, .4);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.42);
+}
+
+.tuodonto-thread {
+  background: linear-gradient(90deg, transparent, rgba(3,80,225,.72), transparent);
+  height: 1px;
+}
+
+.tuodonto-section {
+  padding-block: var(--space-section-y);
+}
+
+.tuodonto-page-shell {
+  min-height: 100svh;
+  overflow-x: clip;
+}
+
+.tuodonto-focus {
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+}
+
+.tuodonto-focus:focus-visible {
+  outline-color: var(--tuodonto-sky-strong);
+  box-shadow: 0 0 0 6px rgba(169, 220, 233, .32);
+}
+
+.tuodonto-field {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(122, 107, 99, .15);
+  background: rgba(255,255,255,.72);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.68);
+}
+
+.tuodonto-panel {
+  border-radius: clamp(1.25rem, 2vw, 2.25rem);
+  background: rgba(255,255,255,.62);
+  box-shadow: 0 24px 80px rgba(4, 21, 67, .1);
+  backdrop-filter: blur(18px);
+}
+
+.tuodonto-admin-shell {
+  --font-display: var(--font-inter), Inter, Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), Inter, Arial, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, Arial, ui-sans-serif, system-ui, sans-serif;
+  background: #f3f5f9;
+  color: var(--tuodonto-ink);
+}
+
+.tuodonto-admin-shell .tuodonto-display {
+  font-family: var(--font-display);
+  font-weight: 750;
+}
+
+.tuodonto-admin-shell .tuodonto-eyebrow {
+  color: var(--tuodonto-taupe);
+  letter-spacing: .16em;
+}
+
+.tuodonto-admin-shell .tuodonto-glass,
+.tuodonto-admin-shell .tuodonto-panel {
+  background: #ffffff;
+  border: 1px solid rgba(33, 26, 23, .12);
+  border-radius: .75rem;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.tuodonto-admin-shell .tuodonto-gold-fill {
+  background: var(--tuodonto-gold);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.tuodonto-admin-shell .tuodonto-sky-fill {
+  background: #ffffff;
+  border: 1px solid rgba(33, 26, 23, .14);
+  color: var(--tuodonto-ink);
+  box-shadow: none;
+}
+
+.tuodonto-no-card {
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --space-page-x: 1rem;
+    --space-section-y: 4.75rem;
+  }
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="TuOdonto">
+  <defs>
+    <linearGradient id="tuo-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9ab55"/>
+      <stop offset="1" stop-color="#b07f2c"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#fffaf1"/>
+  <path d="M82 26c-9.2 0-14.4 5.2-20.7 5.2S49.8 26 40.6 26C23.9 26 14.7 38.6 14.7 53.6c0 25.3 12.7 45.4 19 67.8 2.5 8.9 5 12.7 10.1 12.7 6.3 0 6.3-7.6 6.3-15.2 0-11.4 3.8-20.2 11.2-20.2s11.2 8.8 11.2 20.2c0 7.6 0 15.2 6.3 15.2 5 0 7.6-3.8 10.1-12.7 6.3-22.4 19-42.5 19-67.8 0-15-9.2-27.6-25.9-27.6z" fill="url(#tuo-gold)" transform="scale(.78) translate(18 12)"/>
+</svg>

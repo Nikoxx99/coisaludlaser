@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 86" role="img" aria-labelledby="title desc">
+  <title id="title">tuodonto</title>
+  <desc id="desc">Logotipo de Tuodonto para fondos oscuros</desc>
+  <g fill="none" stroke="#3180ff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 15v49M10 30h28"/>
+    <path d="M50 30v18c0 10 6.5 16 17.5 16S85 58 85 48V30"/>
+  </g>
+  <g fill="none" stroke="#ffffff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M116 28c-11 0-18 7-18 18s7 18 18 18 18-7 18-18-7-18-18-18Z"/>
+    <path d="M183 14v50M183 46c0-11-6.5-18-18-18s-18 7-18 18 7 18 18 18 18-7 18-18Z"/>
+    <path d="M219 28c-11 0-18 7-18 18s7 18 18 18 18-7 18-18-7-18-18-18Z"/>
+    <path d="M251 64V29M251 46c0-11 6.5-18 17.5-18S286 35 286 46v18"/>
+    <path d="M314 15v49m-12-34h29"/>
+    <path d="M356 28c-11 0-18 7-18 18s7 18 18 18 18-7 18-18-7-18-18-18Z"/>
+  </g>
+</svg>

@@ -1,0 +1,164 @@
+{
+  "assets": {
+    "aligner-photo.webp": {
+      "path": "/assets/editorial/aligner-photo.webp",
+      "bytes": 58214,
+      "width": 1500,
+      "height": 1000,
+      "mode": "RGB"
+    },
+    "aligner.png": {
+      "path": "/assets/editorial/aligner.png",
+      "bytes": 456827,
+      "width": 666,
+      "height": 628,
+      "mode": "RGBA"
+    },
+    "aligner.webp": {
+      "path": "/assets/editorial/aligner.webp",
+      "bytes": 62008,
+      "width": 666,
+      "height": 628,
+      "mode": "RGBA"
+    },
+    "arrow-right.svg": {
+      "path": "/assets/editorial/arrow-right.svg",
+      "bytes": 159
+    },
+    "arrow-up-right.svg": {
+      "path": "/assets/editorial/arrow-up-right.svg",
+      "bytes": 155
+    },
+    "clinic-ribbon.webp": {
+      "path": "/assets/editorial/clinic-ribbon.webp",
+      "bytes": 426494,
+      "width": 4096,
+      "height": 1044,
+      "mode": "RGB"
+    },
+    "clinic.webp": {
+      "path": "/assets/editorial/clinic.webp",
+      "bytes": 367600,
+      "width": 2400,
+      "height": 1800,
+      "mode": "RGB"
+    },
+    "cross.svg": {
+      "path": "/assets/editorial/cross.svg",
+      "bytes": 150
+    },
+    "doctor-frontal-bust.png": {
+      "path": "/assets/editorial/doctor-frontal-bust.png",
+      "bytes": 2274291,
+      "width": 1629,
+      "height": 2695,
+      "mode": "RGBA"
+    },
+    "doctor-frontal-bust.webp": {
+      "path": "/assets/editorial/doctor-frontal-bust.webp",
+      "bytes": 232932,
+      "width": 1629,
+      "height": 2695,
+      "mode": "RGBA"
+    },
+    "doctor-frontal-photo.webp": {
+      "path": "/assets/editorial/doctor-frontal-photo.webp",
+      "bytes": 183512,
+      "width": 2400,
+      "height": 1600,
+      "mode": "RGB"
+    },
+    "doctor-frontal.png": {
+      "path": "/assets/editorial/doctor-frontal.png",
+      "bytes": 3993064,
+      "width": 2616,
+      "height": 3150,
+      "mode": "RGBA"
+    },
+    "doctor-frontal.webp": {
+      "path": "/assets/editorial/doctor-frontal.webp",
+      "bytes": 431232,
+      "width": 2616,
+      "height": 3150,
+      "mode": "RGBA"
+    },
+    "doctor-standing.png": {
+      "path": "/assets/editorial/doctor-standing.png",
+      "bytes": 5020115,
+      "width": 2097,
+      "height": 4581,
+      "mode": "RGBA"
+    },
+    "doctor-standing.webp": {
+      "path": "/assets/editorial/doctor-standing.webp",
+      "bytes": 441910,
+      "width": 2097,
+      "height": 4581,
+      "mode": "RGBA"
+    },
+    "facade-panel.webp": {
+      "path": "/assets/editorial/facade-panel.webp",
+      "bytes": 835872,
+      "width": 1800,
+      "height": 2400,
+      "mode": "RGB"
+    },
+    "facade.webp": {
+      "path": "/assets/editorial/facade.webp",
+      "bytes": 740360,
+      "width": 1800,
+      "height": 2400,
+      "mode": "RGB"
+    },
+    "laser-photo.webp": {
+      "path": "/assets/editorial/laser-photo.webp",
+      "bytes": 439606,
+      "width": 2167,
+      "height": 2400,
+      "mode": "RGB"
+    },
+    "laser.png": {
+      "path": "/assets/editorial/laser.png",
+      "bytes": 3965848,
+      "width": 2225,
+      "height": 2587,
+      "mode": "RGBA"
+    },
+    "laser.webp": {
+      "path": "/assets/editorial/laser.webp",
+      "bytes": 477556,
+      "width": 2225,
+      "height": 2587,
+      "mode": "RGBA"
+    },
+    "location-pin.svg": {
+      "path": "/assets/editorial/location-pin.svg",
+      "bytes": 260
+    },
+    "orbit.svg": {
+      "path": "/assets/editorial/orbit.svg",
+      "bytes": 253
+    },
+    "team-photo.webp": {
+      "path": "/assets/editorial/team-photo.webp",
+      "bytes": 176838,
+      "width": 1958,
+      "height": 2400,
+      "mode": "RGB"
+    },
+    "team.png": {
+      "path": "/assets/editorial/team.png",
+      "bytes": 6056063,
+      "width": 3456,
+      "height": 4428,
+      "mode": "RGBA"
+    },
+    "team.webp": {
+      "path": "/assets/editorial/team.webp",
+      "bytes": 628822,
+      "width": 3456,
+      "height": 4428,
+      "mode": "RGBA"
+    }
+  }
+}

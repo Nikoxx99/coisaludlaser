@@ -21,6 +21,7 @@ export type EditorialLandingData = {
     phone: string;
     whatsappHref: string;
     mapsHref: string;
+    adminHref: string;
   };
   nav: EditorialNavItem[];
   hero: {

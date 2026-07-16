@@ -6,6 +6,10 @@ const apiUrl = () =>
     ""
   );
 
+export function getTuOdontoAdminUrl() {
+  return `${apiUrl()}/admin`;
+}
+
 function apiKey() {
   const value = process.env.TUODONTO_SITE_API_KEY?.trim();
   if (!value) throw new Error("TUODONTO_SITE_API_KEY no está configurada.");

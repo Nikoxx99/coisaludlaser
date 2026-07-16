@@ -145,25 +145,53 @@ body:has(.ed-root) {
   color: var(--ed-cyan);
 }
 
-.ed-menu-button {
+.ed-topbar-actions {
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.2vw, 2rem);
+}
+
+.ed-admin-link,
+.ed-menu-button {
   min-width: 3.5rem;
   min-height: 2.75rem;
   padding: 0;
-  appearance: none;
-  border: 0;
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: currentColor;
   font: 700 1rem/1 var(--ed-font);
   text-decoration: underline;
-  text-decoration-color: var(--ed-blue-bright);
   text-decoration-thickness: 2px;
   text-underline-offset: 0.45rem;
+}
+
+.ed-admin-link {
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: color 180ms ease, text-decoration-color 180ms ease;
+}
+
+.ed-admin-link:hover {
+  color: var(--ed-blue-bright);
+  text-decoration-color: currentColor;
+}
+
+.ed-menu-button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  text-decoration-color: var(--ed-blue-bright);
   cursor: pointer;
 }
 
-.ed-topbar.is-dark .ed-menu-button {
+.ed-topbar.is-dark .ed-menu-button,
+.ed-topbar.is-dark .ed-admin-link:hover {
   text-decoration-color: var(--ed-cyan);
+}
+
+.ed-topbar.is-dark .ed-admin-link:hover {
+  color: var(--ed-cyan);
 }
 
 .ed-menu-button:focus-visible,
@@ -1030,6 +1058,17 @@ body:has(.ed-root) {
   .ed-topbar {
     height: 4.25rem;
     padding: 0 var(--ed-safe-inline);
+  }
+
+  .ed-topbar-actions {
+    gap: 0.6rem;
+  }
+
+  .ed-admin-link,
+  .ed-menu-button {
+    min-width: auto;
+    padding-inline: 0.25rem;
+    font-size: 0.86rem;
   }
 
   .ed-logo img {

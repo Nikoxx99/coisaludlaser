@@ -236,7 +236,10 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
             ) : null}
             {data.brand.name}
           </span>
-          <span>{data.contacto.footerTag}</span>
+          <span className="ed-footer-actions">
+            <span className="ed-footer-tag">{data.contacto.footerTag}</span>
+            <a href={data.brand.adminHref}>Acceso Panel</a>
+          </span>
         </footer>
       </section>
     </>

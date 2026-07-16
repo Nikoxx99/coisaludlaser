@@ -145,53 +145,25 @@ body:has(.ed-root) {
   color: var(--ed-cyan);
 }
 
-.ed-topbar-actions {
-  justify-self: end;
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 2.2vw, 2rem);
-}
-
-.ed-admin-link,
 .ed-menu-button {
+  justify-self: end;
   min-width: 3.5rem;
   min-height: 2.75rem;
   padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: currentColor;
-  font: 700 1rem/1 var(--ed-font);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.45rem;
-}
-
-.ed-admin-link {
-  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
-  transition: color 180ms ease, text-decoration-color 180ms ease;
-}
-
-.ed-admin-link:hover {
-  color: var(--ed-blue-bright);
-  text-decoration-color: currentColor;
-}
-
-.ed-menu-button {
   appearance: none;
   border: 0;
   background: transparent;
+  color: currentColor;
+  font: 700 1rem/1 var(--ed-font);
+  text-decoration: underline;
   text-decoration-color: var(--ed-blue-bright);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.45rem;
   cursor: pointer;
 }
 
-.ed-topbar.is-dark .ed-menu-button,
-.ed-topbar.is-dark .ed-admin-link:hover {
+.ed-topbar.is-dark .ed-menu-button {
   text-decoration-color: var(--ed-cyan);
-}
-
-.ed-topbar.is-dark .ed-admin-link:hover {
-  color: var(--ed-cyan);
 }
 
 .ed-menu-button:focus-visible,
@@ -1011,6 +983,23 @@ body:has(.ed-root) {
   object-fit: contain;
 }
 
+.ed-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.25rem);
+}
+
+.ed-footer-actions a {
+  color: inherit;
+  font-weight: 700;
+  text-underline-offset: 0.3rem;
+  transition: opacity 180ms ease;
+}
+
+.ed-footer-actions a:hover {
+  opacity: 0.72;
+}
+
 @media (max-width: 1180px) and (min-width: 1024px) {
   :root {
     --ed-safe-inline: 2.4rem;
@@ -1058,17 +1047,6 @@ body:has(.ed-root) {
   .ed-topbar {
     height: 4.25rem;
     padding: 0 var(--ed-safe-inline);
-  }
-
-  .ed-topbar-actions {
-    gap: 0.6rem;
-  }
-
-  .ed-admin-link,
-  .ed-menu-button {
-    min-width: auto;
-    padding-inline: 0.25rem;
-    font-size: 0.86rem;
   }
 
   .ed-logo img {
@@ -1447,7 +1425,7 @@ body:has(.ed-root) {
     font-size: 0.78rem;
   }
 
-  .ed-contacto-footer > span:last-child {
+  .ed-footer-tag {
     display: none;
   }
 

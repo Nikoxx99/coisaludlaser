@@ -40,7 +40,7 @@ export function MenuOverlay({
         <a href={data.brand.whatsappHref} target="_blank" rel="noreferrer">
           WhatsApp
         </a>
-        <a href={data.brand.adminHref}>Administración</a>
+        <a href={data.brand.adminHref}>Acceso Panel</a>
       </div>
     </div>
   );

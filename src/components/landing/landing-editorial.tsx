@@ -205,21 +205,16 @@ export function LandingEditorial({ data }: { data: EditorialLandingData }) {
         <span className="ed-mobile-index" aria-hidden="true">
           <strong>{String(activeScene + 1).padStart(2, "0")}</strong> / 04
         </span>
-        <div className="ed-topbar-actions">
-          <a className="ed-admin-link" href={data.brand.adminHref}>
-            Admin
-          </a>
-          <button
-            ref={menuButtonRef}
-            type="button"
-            className="ed-menu-button"
-            aria-expanded={menuOpen}
-            aria-controls="ed-menu"
-            onClick={() => setMenuOpen(true)}
-          >
-            Menú
-          </button>
-        </div>
+        <button
+          ref={menuButtonRef}
+          type="button"
+          className="ed-menu-button"
+          aria-expanded={menuOpen}
+          aria-controls="ed-menu"
+          onClick={() => setMenuOpen(true)}
+        >
+          Menú
+        </button>
       </header>
 
       {menuOpen ? <MenuOverlay data={data} onClose={() => setMenuOpen(false)} /> : null}

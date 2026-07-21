@@ -1,10 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { CalendarCheck, CheckCircle2, Loader2, Send } from "lucide-react";
 
-import type { Service } from "@/lib/types";
+import type { Service, TeamMember } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -14,10 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-/**
- * Solicitud de cita sin fecha ni hora (cambio solicitado por el cliente):
- * el paciente deja sus datos y el equipo coordina la agenda por WhatsApp.
- */
+/** Agenda pública conectada a servicios, equipo y disponibilidad de TuOdonto. */
 type AppointmentFields = {
   service: string;
   name: string;
@@ -36,6 +32,10 @@ type AvailabilityDay = {
   slots: Array<{ time: string; teamMemberId: string | null; teamMemberName: string | null }>;
 };
 
+type AppointmentFieldErrors = Partial<
+  Record<keyof AppointmentFields, string[]>
+>;
+
 type SubmissionState =
   | { status: "idle"; message: string; confirmation?: string }
   | { status: "submitting"; message: string; confirmation?: string }
@@ -52,23 +52,70 @@ const discoveryOptions = [
   "Web",
   "Clinica",
 ];
+const ANY_TEAM_VALUE = "__first_available__";
+
+function professionalsForService(
+  service: Service | undefined,
+  teamMembers: TeamMember[]
+) {
+  if (!service) return [];
+
+  const activeTeam = teamMembers.filter((member) => member.active);
+  const membersById = new Map(
+    [
+      ...activeTeam,
+      ...(service.specialists ?? []),
+      ...(service.specialist ? [service.specialist] : []),
+    ]
+      .filter((member) => member.active)
+      .map((member) => [member.id, member])
+  );
+  const assignedIds = Array.from(
+    new Set([
+      ...(service.teamMemberIds ?? []),
+      ...(service.teamMemberId ? [service.teamMemberId] : []),
+    ])
+  );
+
+  if (assignedIds.length > 0) {
+    return assignedIds
+      .map((id) => membersById.get(id))
+      .filter((member): member is TeamMember => Boolean(member));
+  }
+
+  // El backend permite a cualquier profesional activo cuando el servicio no
+  // tiene una asociación explícita. Reflejamos esa misma regla en el sitio.
+  return activeTeam;
+}
+
+function firstFieldError(errors: AppointmentFieldErrors, field: keyof AppointmentFields) {
+  return errors[field]?.[0];
+}
 
 export function AppointmentForm({
   services,
+  teamMembers,
   selectedServiceSlug,
   titleId,
 }: {
   services: Service[];
+  teamMembers: TeamMember[];
   selectedServiceSlug?: string;
   titleId?: string;
 }) {
-  const initialService =
-    services.find((service) => service.slug === selectedServiceSlug)?.slug ??
-    services[0]?.slug ??
-    "";
+  const initialService = useMemo(
+    () =>
+      services.find((service) => service.slug === selectedServiceSlug) ??
+      services[0],
+    [selectedServiceSlug, services]
+  );
+  const initialProfessionals = useMemo(
+    () => professionalsForService(initialService, teamMembers),
+    [initialService, teamMembers]
+  );
   const initialFields = useMemo<AppointmentFields>(
     () => ({
-      service: initialService,
+      service: initialService?.slug ?? "",
       name: "",
       phone: "",
       email: "",
@@ -76,9 +123,10 @@ export function AppointmentForm({
       notes: "",
       date: "",
       time: "",
-      teamMemberId: "",
+      teamMemberId:
+        initialProfessionals.length === 1 ? initialProfessionals[0].id : "",
     }),
-    [initialService]
+    [initialProfessionals, initialService?.slug]
   );
   const [fields, setFields] = useState<AppointmentFields>(initialFields);
   const [state, setState] = useState<SubmissionState>({
@@ -86,76 +134,122 @@ export function AppointmentForm({
     message: "",
   });
   const [availability, setAvailability] = useState<AvailabilityDay[]>([]);
-  const [availabilityState, setAvailabilityState] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [availabilityState, setAvailabilityState] = useState<"loading" | "ready" | "empty" | "error">(
+    services.length > 0 ? "loading" : "empty"
+  );
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<AppointmentFieldErrors>({});
   const selectedService = services.find(
     (service) => service.slug === fields.service
   );
-  const selectedSpecialists =
-    selectedService?.specialists && selectedService.specialists.length > 0
-      ? selectedService.specialists
-      : selectedService?.specialist
-        ? [selectedService.specialist]
-        : [];
+  const selectedSpecialists = professionalsForService(selectedService, teamMembers);
+  const selectedSpecialist = selectedSpecialists.find(
+    (member) => member.id === fields.teamMemberId
+  );
   const selectedDay = availability.find((day) => day.date === fields.date);
 
   useEffect(() => {
     if (!fields.service) return;
     const controller = new AbortController();
-    fetch(`/api/availability?serviceSlug=${encodeURIComponent(fields.service)}&days=30`, {
+    const params = new URLSearchParams({
+      serviceSlug: fields.service,
+      days: "30",
+    });
+    if (fields.teamMemberId) {
+      params.set("teamMemberId", fields.teamMemberId);
+    }
+    fetch(`/api/availability?${params.toString()}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
-        const result = (await response.json()) as { ok?: boolean; days?: AvailabilityDay[] };
-        if (!response.ok || !result.ok) throw new Error("availability");
+        const result = (await response.json()) as {
+          ok?: boolean;
+          days?: AvailabilityDay[];
+          error?: string;
+          message?: string;
+        };
+        if (!response.ok || !result.ok) {
+          throw new Error(
+            result.error || result.message || "No pudimos consultar la agenda."
+          );
+        }
         const days = result.days ?? [];
         setAvailability(days);
         setAvailabilityState(days.length ? "ready" : "empty");
-        setFields((current) => ({ ...current, date: "", time: "", teamMemberId: "" }));
+        setFields((current) => ({ ...current, date: "", time: "" }));
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setAvailability([]);
         setAvailabilityState("error");
+        setAvailabilityError(
+          error instanceof Error
+            ? error.message
+            : "No pudimos consultar la agenda."
+        );
       });
     return () => controller.abort();
-  }, [fields.service]);
+  }, [fields.service, fields.teamMemberId]);
 
   function updateField(field: keyof AppointmentFields, value: string) {
     setFields((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setState({ status: "submitting", message: "Enviando tu solicitud..." });
+    setFieldErrors({});
 
-    const response = await fetch("/api/appointments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(fields),
-    });
-    const result = (await response.json()) as {
-      message?: string;
-      confirmation?: string;
-    };
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields),
+      });
+      const result = (await response.json().catch(() => null)) as {
+        message?: string;
+        confirmation?: string;
+        errors?: AppointmentFieldErrors;
+      } | null;
 
-    if (!response.ok || !result.confirmation) {
+      if (!response.ok || !result?.confirmation) {
+        const errors = result?.errors ?? {};
+        const details = Array.from(
+          new Set(Object.values(errors).flat().filter(Boolean))
+        );
+        setFieldErrors(errors);
+        setState({
+          status: "error",
+          message:
+            details.length > 0
+              ? details.join(" ")
+              : result?.message ??
+                "No pudimos registrar la solicitud. Intenta de nuevo o escribe por WhatsApp.",
+        });
+        return;
+      }
+
+      setState({
+        status: "success",
+        message:
+          result.message ??
+          "Recibimos tu solicitud. Te contactaremos para coordinar fecha y hora.",
+        confirmation: result.confirmation,
+      });
+    } catch {
       setState({
         status: "error",
         message:
-          result.message ??
-          "No pudimos registrar la solicitud. Intenta de nuevo o escribe por WhatsApp.",
+          "No pudimos conectar con la agenda. Revisa tu conexión e intenta de nuevo; tus datos siguen en el formulario.",
       });
-      return;
     }
-
-    setState({
-      status: "success",
-      message:
-        result.message ??
-        "Recibimos tu solicitud. Te contactaremos para coordinar fecha y hora.",
-      confirmation: result.confirmation,
-    });
   }
 
   if (state.status === "success") {
@@ -184,6 +278,7 @@ export function AppointmentForm({
           type="button"
           onClick={() => {
             setFields(initialFields);
+            setFieldErrors({});
             setState({ status: "idle", message: "" });
           }}
           className="tuodonto-focus mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full tuodonto-sky-fill px-5 text-sm font-semibold transition hover:-translate-y-0.5"
@@ -219,12 +314,33 @@ export function AppointmentForm({
           <Select
             value={fields.service}
             onValueChange={(value) => {
+              const service = services.find((item) => item.slug === value);
+              const professionals = professionalsForService(service, teamMembers);
               setAvailabilityState("loading");
-              updateField("service", value ?? "");
+              setAvailabilityError("");
+              setFields((current) => ({
+                ...current,
+                service: value ?? "",
+                teamMemberId:
+                  professionals.length === 1 ? professionals[0].id : "",
+                date: "",
+                time: "",
+              }));
+              setFieldErrors((current) => ({
+                ...current,
+                service: undefined,
+                teamMemberId: undefined,
+                date: undefined,
+                time: undefined,
+              }));
             }}
           >
-            <SelectTrigger className={cn(fieldClass, "h-12 w-full rounded-[1rem] bg-white/72")}>
-              <SelectValue />
+            <SelectTrigger
+              aria-invalid={Boolean(firstFieldError(fieldErrors, "service"))}
+              aria-describedby={firstFieldError(fieldErrors, "service") ? "appointment-service-error" : undefined}
+              className={cn(fieldClass, "h-12 w-full rounded-[1rem] bg-white/72")}
+            >
+              <SelectValue>{selectedService?.name ?? "Selecciona un servicio"}</SelectValue>
             </SelectTrigger>
             <SelectContent align="start" className="rounded-[1rem] border border-[var(--tuodonto-line)] bg-white p-1 shadow-2xl">
               {services.map((service) => (
@@ -234,50 +350,78 @@ export function AppointmentForm({
               ))}
             </SelectContent>
           </Select>
+          {firstFieldError(fieldErrors, "service") ? (
+            <span id="appointment-service-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "service")}
+            </span>
+          ) : null}
         </label>
-        {selectedSpecialists.length > 0 ? (
-          <div className="rounded-[1.25rem] border border-[var(--tuodonto-line)] bg-white/45 p-3">
-            <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--tuodonto-gold-deep)]">
-              Profesionales posibles
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
+        <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
+          Especialista
+          <Select
+            value={fields.teamMemberId || ANY_TEAM_VALUE}
+            disabled={selectedSpecialists.length === 0}
+            onValueChange={(value) => {
+              const teamMemberId =
+                value === ANY_TEAM_VALUE ? "" : value ?? "";
+              setAvailabilityState("loading");
+              setAvailabilityError("");
+              setFields((current) => ({
+                ...current,
+                teamMemberId,
+                date: "",
+                time: "",
+              }));
+              setFieldErrors((current) => ({
+                ...current,
+                teamMemberId: undefined,
+                date: undefined,
+                time: undefined,
+              }));
+            }}
+          >
+            <SelectTrigger
+              aria-invalid={Boolean(firstFieldError(fieldErrors, "teamMemberId"))}
+              aria-describedby={
+                firstFieldError(fieldErrors, "teamMemberId")
+                  ? "appointment-specialist-help appointment-specialist-error"
+                  : "appointment-specialist-help"
+              }
+              className={cn(fieldClass, "h-12 w-full rounded-[1rem] bg-white/72")}
+            >
+              <SelectValue>
+                {selectedSpecialist?.name ??
+                  (selectedSpecialists.length > 0
+                    ? "Primero disponible"
+                    : "Sin profesionales activos")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent align="start" className="rounded-[1rem] border border-[var(--tuodonto-line)] bg-white p-1 shadow-2xl">
+              {selectedSpecialists.length > 1 ? (
+                <SelectItem value={ANY_TEAM_VALUE} className="min-h-11 px-3 text-[var(--tuodonto-brown)]">
+                  Primero disponible
+                </SelectItem>
+              ) : null}
               {selectedSpecialists.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex min-w-0 items-center gap-2 rounded-full bg-white/70 py-1.5 pl-1.5 pr-3"
-                >
-                  <span className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--tuodonto-line)] bg-[var(--tuodonto-mist)]">
-                    {member.avatarUrl ? (
-                      <Image
-                        src={member.avatarUrl}
-                        alt={member.name}
-                        fill
-                        sizes="36px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <span className="tuodonto-display text-xl text-[var(--tuodonto-gold)]">
-                        {member.name.charAt(0)}
-                      </span>
-                    )}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-[var(--tuodonto-brown)]">
-                      {member.name}
-                    </span>
-                    <span className="block truncate text-xs font-normal text-[var(--tuodonto-taupe)]">
-                      {member.specialty}
-                    </span>
-                  </span>
-                </div>
+                <SelectItem key={member.id} value={member.id} className="min-h-11 px-3 text-[var(--tuodonto-brown)]">
+                  {member.name} · {member.specialty}
+                </SelectItem>
               ))}
-            </div>
-            <p className="mt-2 text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]">
-              Al confirmar la cita asignamos el profesional disponible indicado
-              para tu caso.
-            </p>
-          </div>
-        ) : null}
+            </SelectContent>
+          </Select>
+          <span id="appointment-specialist-help" className="block text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]">
+            {selectedSpecialist
+              ? selectedSpecialist.specialty
+              : selectedSpecialists.length > 0
+                ? "La clínica asignará el primer profesional disponible."
+                : "No hay profesionales activos para este servicio."}
+          </span>
+          {firstFieldError(fieldErrors, "teamMemberId") ? (
+            <span id="appointment-specialist-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "teamMemberId")}
+            </span>
+          ) : null}
+        </label>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Fecha disponible
           <input
@@ -286,33 +430,68 @@ export function AppointmentForm({
             min={availability[0]?.date}
             max={availability.at(-1)?.date}
             onChange={(event) => {
-              updateField("date", event.target.value);
-              setFields((current) => ({ ...current, date: event.target.value, time: "", teamMemberId: "" }));
+              setFields((current) => ({
+                ...current,
+                date: event.target.value,
+                time: "",
+              }));
+              setFieldErrors((current) => ({
+                ...current,
+                date: undefined,
+                time: undefined,
+              }));
             }}
             className={fieldClass}
+            aria-invalid={Boolean(firstFieldError(fieldErrors, "date"))}
+            aria-describedby={
+              firstFieldError(fieldErrors, "date")
+                ? "appointment-date-error appointment-date-help"
+                : "appointment-date-help"
+            }
             required={availabilityState === "ready"}
             disabled={availabilityState !== "ready"}
           />
-          <span className="block text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]" aria-live="polite">
+          <span id="appointment-date-help" className="block text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]" aria-live="polite">
             {availabilityState === "loading" && "Consultando agenda real…"}
             {availabilityState === "empty" && "No hay horarios publicados; enviaremos tu solicitud para coordinarla."}
-            {availabilityState === "error" && "No pudimos consultar la agenda; puedes enviar la solicitud y te contactaremos."}
+            {availabilityState === "error" && `${availabilityError} Puedes enviar la solicitud y te contactaremos.`}
             {availabilityState === "ready" && !fields.date && "Elige en el calendario una de las fechas con disponibilidad."}
           </span>
+          {firstFieldError(fieldErrors, "date") ? (
+            <span id="appointment-date-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "date")}
+            </span>
+          ) : null}
         </label>
         <fieldset className="min-w-0 space-y-2" disabled={!selectedDay}>
           <legend className="text-sm font-semibold text-[var(--tuodonto-brown)]">Hora disponible</legend>
           <div className="flex min-h-12 flex-wrap gap-2 rounded-[1rem] border border-[var(--tuodonto-line)] bg-white/45 p-1.5">
             {selectedDay ? selectedDay.slots.map((slot) => {
-              const selected = fields.time === slot.time && fields.teamMemberId === (slot.teamMemberId ?? "");
+              const selected = fields.time === slot.time && (!slot.teamMemberId || fields.teamMemberId === slot.teamMemberId);
               return (
-                <button key={`${slot.time}-${slot.teamMemberId ?? "any"}`} type="button" onClick={() => setFields((current) => ({ ...current, time: slot.time, teamMemberId: slot.teamMemberId ?? "" }))} className={cn("tuodonto-focus min-h-9 rounded-full px-3 text-xs font-semibold", selected ? "bg-[var(--tuodonto-gold)] text-white" : "bg-white text-[var(--tuodonto-brown)]")} aria-pressed={selected}>
-                  {slot.time}
+                <button key={`${slot.time}-${slot.teamMemberId ?? "any"}`} type="button" onClick={() => {
+                  setFields((current) => ({
+                    ...current,
+                    time: slot.time,
+                    teamMemberId: slot.teamMemberId ?? current.teamMemberId,
+                  }));
+                  setFieldErrors((current) => ({
+                    ...current,
+                    time: undefined,
+                    teamMemberId: undefined,
+                  }));
+                }} className={cn("tuodonto-focus min-h-9 rounded-full px-3 text-xs font-semibold", selected ? "bg-[var(--tuodonto-gold)] text-white" : "bg-white text-[var(--tuodonto-brown)]")} aria-pressed={selected}>
+                  {slot.time}{slot.teamMemberName ? ` · ${slot.teamMemberName}` : ""}
                 </button>
               );
             }) : <span className="self-center px-2 text-xs text-[var(--tuodonto-muted)]">Selecciona una fecha</span>}
           </div>
-          {availabilityState === "ready" ? <input className="sr-only" tabIndex={-1} required value={fields.time} onChange={() => undefined} aria-label="Hora seleccionada" /> : null}
+          {availabilityState === "ready" ? <input className="sr-only" tabIndex={-1} required value={fields.time} onChange={() => undefined} aria-label="Hora seleccionada" aria-invalid={Boolean(firstFieldError(fieldErrors, "time"))} aria-describedby={firstFieldError(fieldErrors, "time") ? "appointment-time-error" : undefined} /> : null}
+          {firstFieldError(fieldErrors, "time") ? (
+            <span id="appointment-time-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "time")}
+            </span>
+          ) : null}
         </fieldset>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Nombre completo
@@ -322,8 +501,17 @@ export function AppointmentForm({
             onChange={(event) => updateField("name", event.target.value)}
             className={fieldClass}
             placeholder="Tu nombre"
+            minLength={3}
+            maxLength={120}
+            aria-invalid={Boolean(firstFieldError(fieldErrors, "name"))}
+            aria-describedby={firstFieldError(fieldErrors, "name") ? "appointment-name-error" : undefined}
             required
           />
+          {firstFieldError(fieldErrors, "name") ? (
+            <span id="appointment-name-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "name")}
+            </span>
+          ) : null}
         </label>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Teléfono / WhatsApp
@@ -333,8 +521,17 @@ export function AppointmentForm({
             onChange={(event) => updateField("phone", event.target.value)}
             className={fieldClass}
             placeholder="321 000 0000"
+            minLength={7}
+            maxLength={30}
+            aria-invalid={Boolean(firstFieldError(fieldErrors, "phone"))}
+            aria-describedby={firstFieldError(fieldErrors, "phone") ? "appointment-phone-error" : undefined}
             required
           />
+          {firstFieldError(fieldErrors, "phone") ? (
+            <span id="appointment-phone-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "phone")}
+            </span>
+          ) : null}
         </label>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Correo
@@ -344,7 +541,15 @@ export function AppointmentForm({
             onChange={(event) => updateField("email", event.target.value)}
             className={fieldClass}
             placeholder="correo@ejemplo.com"
+            maxLength={254}
+            aria-invalid={Boolean(firstFieldError(fieldErrors, "email"))}
+            aria-describedby={firstFieldError(fieldErrors, "email") ? "appointment-email-error" : undefined}
           />
+          {firstFieldError(fieldErrors, "email") ? (
+            <span id="appointment-email-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+              {firstFieldError(fieldErrors, "email")}
+            </span>
+          ) : null}
         </label>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           De dónde nos conociste
@@ -372,13 +577,22 @@ export function AppointmentForm({
           onChange={(event) => updateField("notes", event.target.value)}
           className={cn(fieldClass, "min-h-20 resize-y")}
           placeholder="Cuéntanos si tienes dolor, sensibilidad o una fecha ideal."
+          maxLength={500}
+          aria-invalid={Boolean(firstFieldError(fieldErrors, "notes"))}
+          aria-describedby={firstFieldError(fieldErrors, "notes") ? "appointment-notes-error" : undefined}
         />
+        {firstFieldError(fieldErrors, "notes") ? (
+          <span id="appointment-notes-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
+            {firstFieldError(fieldErrors, "notes")}
+          </span>
+        ) : null}
       </label>
 
       {state.status === "error" && (
-        <p className="mt-4 rounded-full bg-[rgba(184,82,71,.1)] px-4 py-3 text-sm text-[var(--tuodonto-danger)]">
-          {state.message}
-        </p>
+        <div role="alert" className="mt-4 rounded-[1rem] border border-[rgba(184,82,71,.25)] bg-[rgba(184,82,71,.1)] px-4 py-3 text-sm text-[var(--tuodonto-danger)]">
+          <p className="font-semibold">No pudimos enviar la solicitud.</p>
+          <p className="mt-1 leading-5">{state.message}</p>
+        </div>
       )}
 
       <button

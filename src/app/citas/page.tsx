@@ -10,6 +10,7 @@ import {
   getAvailabilitySlots,
   getServices,
   getSiteSettings,
+  getTeamMembers,
 } from "@/lib/repository";
 
 export const metadata: Metadata = {
@@ -24,9 +25,10 @@ export default async function CitasPage({
 }: {
   searchParams: Promise<{ servicio?: string | string[] }>;
 }) {
-  const [query, services, availabilitySlots, settings] = await Promise.all([
+  const [query, services, teamMembers, availabilitySlots, settings] = await Promise.all([
     searchParams,
     getServices(),
+    getTeamMembers(),
     getAvailabilitySlots(),
     getSiteSettings(),
   ]);
@@ -48,6 +50,7 @@ export default async function CitasPage({
           <div>
             <AppointmentForm
               services={services}
+              teamMembers={teamMembers}
               selectedServiceSlug={selectedServiceSlug}
               titleId="citas-form-title"
             />

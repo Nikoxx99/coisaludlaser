@@ -23,6 +23,7 @@ type SiteContent = {
   brandImages: BrandImages;
   navigation: NavigationSettings;
   services: Service[];
+  bookableServices?: Service[];
   serviceCategories: ServiceCategory[];
   team: TeamMember[];
   availabilitySlots: AvailabilitySlot[];
@@ -56,6 +57,15 @@ export async function getNavigationSettings() {
 }
 export async function getServices() {
   return (await getContent()).services;
+}
+export async function getBookableServices() {
+  const content = await getContent();
+  return (
+    content.bookableServices ??
+    content.services.filter(
+      (service) => service.publicBookingEnabled !== false
+    )
+  );
 }
 export async function getFeaturedServices() {
   return (await getContent()).services.filter((service) => service.featured);

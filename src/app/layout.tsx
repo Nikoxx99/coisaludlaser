@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   description:
     "Odontología con láser, control del dolor y atención para pacientes nerviosos en San Sebastián de Mariquita.",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/api/favicon",
   },
 };
 

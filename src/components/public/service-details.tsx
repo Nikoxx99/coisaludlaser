@@ -251,7 +251,8 @@ export function ServiceDetails({
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                {appointmentsEnabled ? (
+                {appointmentsEnabled &&
+                selectedService.publicBookingEnabled !== false ? (
                   <PublicLinkButton
                     href={`/citas?servicio=${selectedService.slug}`}
                   >

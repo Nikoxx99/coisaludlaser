@@ -8,7 +8,7 @@ import { formatWeeklyHours } from "@/lib/business-hours";
 import { doctoraliaUrl } from "@/lib/social-links";
 import {
   getAvailabilitySlots,
-  getServices,
+  getBookableServices,
   getSiteSettings,
   getTeamMembers,
 } from "@/lib/repository";
@@ -27,7 +27,7 @@ export default async function CitasPage({
 }) {
   const [query, services, teamMembers, availabilitySlots, settings] = await Promise.all([
     searchParams,
-    getServices(),
+    getBookableServices(),
     getTeamMembers(),
     getAvailabilitySlots(),
     getSiteSettings(),

@@ -14,6 +14,7 @@ export type Service = {
   specialists?: TeamMember[];
   active?: boolean;
   featured?: boolean;
+  publicBookingEnabled?: boolean;
 };
 
 export type ServiceCategory = {

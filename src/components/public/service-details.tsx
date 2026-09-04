@@ -79,6 +79,55 @@ const serviceGuides: Record<
     path: ["Diagnóstico estético", "Propuesta de ruta", "Tratamiento por fases"],
     note: "Primero se valida salud y mordida; luego se define la estética.",
   },
+  "urgencias-odontologicas": {
+    outcome:
+      "Busca controlar la situación inicial, entender el origen de la molestia y ordenar los siguientes pasos.",
+    checks: ["Dolor y síntomas", "Trauma o inflamación", "Prioridad clínica"],
+    path: ["Valoración prioritaria", "Manejo inicial", "Tratamiento o remisión"],
+    note: "La prioridad y el tratamiento se definen después de revisar el caso.",
+  },
+  exodoncias: {
+    outcome:
+      "Retira una pieza cuando conservarla no es viable o cuando existe una indicación clínica confirmada.",
+    checks: ["Antecedentes de salud", "Imagen diagnóstica", "Cuidados posteriores"],
+    path: ["Valoración", "Planeación del procedimiento", "Control"],
+    note: "No toda molestia termina en extracción; primero se confirma la indicación.",
+  },
+  "frenillectomia-laser": {
+    outcome:
+      "Aborda un frenillo que limita movilidad o función cuando la evaluación confirma la indicación.",
+    checks: ["Movilidad y función", "Tejidos involucrados", "Plan de recuperación"],
+    path: ["Valoración funcional", "Procedimiento indicado", "Seguimiento"],
+    note: "El uso del láser y el plan posterior dependen de la valoración.",
+  },
+  "gingivoplastia-laser": {
+    outcome:
+      "Armoniza el contorno de las encías respetando su salud y las proporciones de la sonrisa.",
+    checks: ["Salud de encías", "Proporciones", "Expectativa estética"],
+    path: ["Valoración", "Planeación del contorno", "Control"],
+    note: "La estética se trabaja solo después de comprobar la salud de los tejidos.",
+  },
+  "aclaramiento-dental": {
+    outcome:
+      "Busca mejorar el tono dental con una técnica elegida según sensibilidad y condiciones de la boca.",
+    checks: ["Color inicial", "Sensibilidad", "Restauraciones existentes"],
+    path: ["Valoración", "Técnica indicada", "Cuidados y control"],
+    note: "El cambio posible varía entre pacientes y se define en la valoración.",
+  },
+  "carillas-dentales": {
+    outcome:
+      "Busca armonizar forma, color y proporción con una planeación individual y conservadora.",
+    checks: ["Mordida", "Tejido dental", "Objetivos estéticos"],
+    path: ["Diagnóstico estético", "Diseño y material", "Tratamiento y control"],
+    note: "Las carillas son una alternativa posible, no una decisión previa al diagnóstico.",
+  },
+  "resinas-e-incrustaciones": {
+    outcome:
+      "Recupera estructura, función y apariencia con la restauración apropiada para cada diente.",
+    checks: ["Tejido comprometido", "Mordida", "Material indicado"],
+    path: ["Diagnóstico", "Restauración", "Ajuste y control"],
+    note: "La extensión del daño orienta la elección entre resina, incrustación u otra opción.",
+  },
 };
 
 function guideFor(service: Service) {

@@ -24,6 +24,7 @@ type AppointmentFields = {
   date: string;
   time: string;
   teamMemberId: string;
+  consent: boolean;
 };
 
 type AvailabilityDay = {
@@ -125,6 +126,7 @@ export function AppointmentForm({
       time: "",
       teamMemberId:
         initialProfessionals.length === 1 ? initialProfessionals[0].id : "",
+      consent: false,
     }),
     [initialProfessionals, initialService?.slug]
   );
@@ -204,7 +206,29 @@ export function AppointmentForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setState({ status: "submitting", message: "Enviando tu solicitud..." });
+    if (availabilityState === "loading") {
+      setState({ status: "error", message: "Espera a que termine de cargar la agenda." });
+      return;
+    }
+    if (availabilityState === "ready" && (!fields.date || !fields.time)) {
+      const errors: AppointmentFieldErrors = {};
+      if (!fields.date) errors.date = ["Selecciona una fecha disponible."];
+      if (!fields.time) errors.time = ["Selecciona una hora disponible."];
+      setFieldErrors(errors);
+      setState({
+        status: "error",
+        message: "Selecciona una fecha y una hora disponibles para reservar.",
+      });
+      return;
+    }
+
+    setState({
+      status: "submitting",
+      message:
+        availabilityState === "ready"
+          ? "Agendando tu valoración..."
+          : "Enviando tu solicitud...",
+    });
     setFieldErrors({});
 
     try {
@@ -240,7 +264,7 @@ export function AppointmentForm({
         status: "success",
         message:
           result.message ??
-          "Recibimos tu solicitud. Te contactaremos para coordinar fecha y hora.",
+          "Tu valoración quedó agendada. Conserva el código de confirmación.",
         confirmation: result.confirmation,
       });
     } catch {
@@ -258,9 +282,13 @@ export function AppointmentForm({
         <div className="flex size-14 items-center justify-center rounded-full tuodonto-gold-fill">
           <CheckCircle2 className="size-7" aria-hidden="true" />
         </div>
-        <p className="tuodonto-eyebrow mt-6">Solicitud recibida</p>
+        <p className="tuodonto-eyebrow mt-6">
+          {fields.date && fields.time ? "Valoración agendada" : "Solicitud recibida"}
+        </p>
         <h2 className="tuodonto-display mt-2 text-5xl leading-none text-[var(--tuodonto-brown)]">
-          Nos pondremos en contacto contigo.
+          {fields.date && fields.time
+            ? "Tu horario quedó reservado."
+            : "El equipo te contactará."}
         </h2>
         <p className="mt-5 text-[var(--tuodonto-taupe)]">{state.message}</p>
         <div className="mt-6 rounded-[1.5rem] border border-[var(--tuodonto-line)] bg-white/55 p-5">
@@ -283,7 +311,7 @@ export function AppointmentForm({
           }}
           className="tuodonto-focus mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full tuodonto-sky-fill px-5 text-sm font-semibold transition hover:-translate-y-0.5"
         >
-          Enviar otra solicitud
+          Agendar otra valoración
         </button>
       </div>
     );
@@ -297,10 +325,11 @@ export function AppointmentForm({
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 id={titleId} className="tuodonto-display mt-1.5 text-4xl leading-none text-[var(--tuodonto-brown)] md:text-[2.75rem]">
-            Pide tu valoración.
+            Agenda tu valoración.
           </h2>
           <p className="mt-2 text-sm leading-5 text-[var(--tuodonto-taupe)]">
-            Déjanos tus datos y coordinamos contigo la fecha y la hora.
+            Elige modalidad, fecha y hora disponible. Si la agenda no carga,
+            envía tus datos y el equipo te contactará.
           </p>
         </div>
         <div className="hidden size-12 items-center justify-center rounded-full tuodonto-gold-fill md:flex">
@@ -424,11 +453,8 @@ export function AppointmentForm({
         </label>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Fecha disponible
-          <input
-            type="date"
+          <select
             value={fields.date}
-            min={availability[0]?.date}
-            max={availability.at(-1)?.date}
             onChange={(event) => {
               setFields((current) => ({
                 ...current,
@@ -441,21 +467,28 @@ export function AppointmentForm({
                 time: undefined,
               }));
             }}
-            className={fieldClass}
+            className={cn(fieldClass, "appearance-none")}
             aria-invalid={Boolean(firstFieldError(fieldErrors, "date"))}
             aria-describedby={
               firstFieldError(fieldErrors, "date")
                 ? "appointment-date-error appointment-date-help"
                 : "appointment-date-help"
             }
-            required={availabilityState === "ready"}
+            aria-required={availabilityState === "ready"}
             disabled={availabilityState !== "ready"}
-          />
+          >
+            <option value="">Selecciona una fecha</option>
+            {availability.map((day) => (
+              <option key={day.date} value={day.date}>
+                {day.dayName} · {day.date}
+              </option>
+            ))}
+          </select>
           <span id="appointment-date-help" className="block text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]" aria-live="polite">
             {availabilityState === "loading" && "Consultando agenda real…"}
             {availabilityState === "empty" && "No hay horarios publicados; enviaremos tu solicitud para coordinarla."}
             {availabilityState === "error" && `${availabilityError} Puedes enviar la solicitud y te contactaremos.`}
-            {availabilityState === "ready" && !fields.date && "Elige en el calendario una de las fechas con disponibilidad."}
+            {availabilityState === "ready" && !fields.date && "Elige una de las fechas con disponibilidad real."}
           </span>
           {firstFieldError(fieldErrors, "date") ? (
             <span id="appointment-date-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
@@ -486,7 +519,11 @@ export function AppointmentForm({
               );
             }) : <span className="self-center px-2 text-xs text-[var(--tuodonto-muted)]">Selecciona una fecha</span>}
           </div>
-          {availabilityState === "ready" ? <input className="sr-only" tabIndex={-1} required value={fields.time} onChange={() => undefined} aria-label="Hora seleccionada" aria-invalid={Boolean(firstFieldError(fieldErrors, "time"))} aria-describedby={firstFieldError(fieldErrors, "time") ? "appointment-time-error" : undefined} /> : null}
+          {availabilityState === "ready" && fields.date && !fields.time ? (
+            <span className="block text-xs font-normal text-[var(--tuodonto-taupe)]" aria-live="polite">
+              Selecciona una hora para completar la reserva.
+            </span>
+          ) : null}
           {firstFieldError(fieldErrors, "time") ? (
             <span id="appointment-time-error" className="block text-xs font-normal text-[var(--tuodonto-danger)]">
               {firstFieldError(fieldErrors, "time")}
@@ -576,7 +613,7 @@ export function AppointmentForm({
           value={fields.notes}
           onChange={(event) => updateField("notes", event.target.value)}
           className={cn(fieldClass, "min-h-20 resize-y")}
-          placeholder="Cuéntanos si tienes dolor, sensibilidad o una fecha ideal."
+          placeholder="Indica, si quieres, cómo prefieres que te contactemos."
           maxLength={500}
           aria-invalid={Boolean(firstFieldError(fieldErrors, "notes"))}
           aria-describedby={firstFieldError(fieldErrors, "notes") ? "appointment-notes-error" : undefined}
@@ -588,6 +625,21 @@ export function AppointmentForm({
         ) : null}
       </label>
 
+      <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-[var(--tuodonto-taupe)]">
+        <input
+          type="checkbox"
+          checked={fields.consent}
+          onChange={(event) =>
+            setFields((current) => ({ ...current, consent: event.target.checked }))
+          }
+          className="tuodonto-focus mt-1 size-4 shrink-0 accent-[var(--tuodonto-gold)]"
+          required
+        />
+        <span>
+          Autorizo que COISalud Láser use estos datos para gestionar mi solicitud y contactarme.
+        </span>
+      </label>
+
       {state.status === "error" && (
         <div role="alert" className="mt-4 rounded-[1rem] border border-[rgba(184,82,71,.25)] bg-[rgba(184,82,71,.1)] px-4 py-3 text-sm text-[var(--tuodonto-danger)]">
           <p className="font-semibold">No pudimos enviar la solicitud.</p>
@@ -597,7 +649,7 @@ export function AppointmentForm({
 
       <button
         type="submit"
-        disabled={state.status === "submitting"}
+        disabled={state.status === "submitting" || availabilityState === "loading"}
         className="tuodonto-focus mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full tuodonto-gold-fill px-6 text-sm font-semibold transition hover:-translate-y-0.5 disabled:opacity-60 md:w-auto"
       >
         {state.status === "submitting" ? (
@@ -605,7 +657,9 @@ export function AppointmentForm({
         ) : (
           <Send className="size-4" aria-hidden="true" />
         )}
-        Enviar solicitud
+        {state.status === "submitting"
+          ? availabilityState === "ready" ? "Agendando…" : "Enviando…"
+          : availabilityState === "ready" ? "Agendar valoración" : "Enviar solicitud"}
       </button>
     </form>
   );

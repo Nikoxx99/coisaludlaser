@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
-import { CalendarDays, Clock, ExternalLink, ShieldCheck } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  CircleHelp,
+  Clock,
+  CreditCard,
+  ExternalLink,
+  ShieldCheck,
+} from "lucide-react";
 
 import { AppointmentForm } from "@/components/forms/appointment-form";
 import { PublicLinkButton } from "@/components/public/link-button";
@@ -9,6 +17,7 @@ import { doctoraliaUrl } from "@/lib/social-links";
 import {
   getAvailabilitySlots,
   getBookableServices,
+  getLandingCopy,
   getSiteSettings,
   getTeamMembers,
 } from "@/lib/repository";
@@ -25,12 +34,13 @@ export default async function CitasPage({
 }: {
   searchParams: Promise<{ servicio?: string | string[] }>;
 }) {
-  const [query, services, teamMembers, availabilitySlots, settings] = await Promise.all([
+  const [query, services, teamMembers, availabilitySlots, settings, landing] = await Promise.all([
     searchParams,
     getBookableServices(),
     getTeamMembers(),
     getAvailabilitySlots(),
     getSiteSettings(),
+    getLandingCopy(),
   ]);
   const selectedServiceSlug = Array.isArray(query.servicio)
     ? query.servicio[0]
@@ -58,9 +68,9 @@ export default async function CitasPage({
 
           <aside className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
             <div className="rounded-[1.75rem] border border-[var(--tuodonto-line)] bg-white/64 p-5 shadow-[0_20px_60px_rgba(4,21,67,.07)]">
-              <p className="tuodonto-eyebrow">Antes de enviar</p>
+              <p className="tuodonto-eyebrow">Antes de agendar</p>
               <h2 className="tuodonto-display mt-2 text-3xl leading-none text-[var(--tuodonto-brown)]">
-                Coordinamos la agenda contigo.
+                Elige un horario disponible.
               </h2>
               <div className="mt-5 flex gap-3">
                 <Clock className="mt-0.5 size-5 shrink-0 text-[var(--tuodonto-gold)]" />
@@ -93,8 +103,8 @@ export default async function CitasPage({
                 },
                 {
                   icon: ShieldCheck,
-                  title: "Datos protegidos",
-                  copy: "Solo los usamos para responder tu solicitud.",
+                  title: "Uso de tus datos",
+                  copy: "Se usan para gestionar esta solicitud y contactarte.",
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-3">
@@ -137,6 +147,46 @@ export default async function CitasPage({
           </aside>
         </div>
       </section>
+
+      {landing.patientInfo ? (
+        <section
+          aria-labelledby="citas-info-title"
+          className="border-t border-[var(--tuodonto-line)] bg-[var(--tuodonto-pearl)] px-[var(--space-page-x)] py-14"
+        >
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr]">
+            <div className="rounded-[2rem] border border-[var(--tuodonto-line)] bg-white/62 p-6 shadow-[0_20px_60px_rgba(4,21,67,.06)] md:p-8">
+              <CreditCard className="size-7 text-[var(--tuodonto-gold)]" aria-hidden="true" />
+              <p className="tuodonto-eyebrow mt-5">Opciones de pago</p>
+              <h2 id="citas-info-title" className="tuodonto-display mt-2 text-4xl leading-none text-[var(--tuodonto-brown)]">
+                {landing.patientInfo.financingTitle}
+              </h2>
+              <p className="mt-5 text-sm leading-7 text-[var(--tuodonto-taupe)]">
+                {landing.patientInfo.financingCopy}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-3">
+                <CircleHelp className="size-6 text-[var(--tuodonto-gold)]" aria-hidden="true" />
+                <p className="tuodonto-eyebrow">Preguntas frecuentes</p>
+              </div>
+              <div className="mt-5 divide-y divide-[var(--tuodonto-line)] border-y border-[var(--tuodonto-line)]">
+                {landing.patientInfo.faq.map((item) => (
+                  <details key={item.question} className="group py-5">
+                    <summary className="tuodonto-focus flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-[var(--tuodonto-brown)] marker:hidden">
+                      <span>{item.question}</span>
+                      <ChevronDown className="size-5 shrink-0 transition group-open:rotate-180" aria-hidden="true" />
+                    </summary>
+                    <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--tuodonto-taupe)]">
+                      {item.answer}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </PublicShell>
   );
 }

@@ -310,6 +310,15 @@ export type LandingCopy = {
     eyebrow: string;
     title: string;
   };
+  /** Información práctica opcional para la decisión previa a una valoración. */
+  patientInfo?: {
+    financingTitle: string;
+    financingCopy: string;
+    faq: Array<{
+      question: string;
+      answer: string;
+    }>;
+  };
   /** Copy de la landing editorial (hero SONRÍE + paneles horizontales). */
   editorial: {
     heroWord: string;

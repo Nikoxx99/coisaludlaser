@@ -109,27 +109,27 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
         <div className="ed-care-copy">
           <SceneHeader index="03" label={data.panels.headers[2]} />
           <h2 id="ed-care-title" data-scene-title>
-            Niños y pacientes nerviosos, <span>en buenas manos.</span>
+            Tratamos niños y <span>pacientes nerviosos</span>
           </h2>
           <p className="ed-care-intro" data-scene-reveal>
-            Soy la Dra. Angie Lezama y me especializo en la atención de niños
-            y pacientes nerviosos.
+            Te brindamos una atención delicada, consciente y especializada para
+            reducir el dolor y estrés en procedimientos y consultas.
           </p>
           <div className="ed-care-topics" data-scene-reveal>
             <div>
-              <h3>Para la sonrisa de tu hijo</h3>
+              <h3>Experiencia y un trato delicado</h3>
               <p>
-                Acompaño a tu hijo en el cuidado de sus dientes con un trato
-                cercano y explicaciones que pueda entender. Su confianza
-                también es parte de la atención.
+                La Dra. Angie Lezama combina su experiencia en la atención de
+                niños y pacientes nerviosos con un trato paciente y cercano.
+                Te explica cada paso y cuida cómo te sientes durante la consulta.
               </p>
             </div>
             <div>
-              <h3>Una atención pensada para ti</h3>
+              <h3>Tecnología para una atención más cómoda</h3>
               <p>
-                Si ir al odontólogo te genera nervios, estás en el lugar
-                indicado. Te explico cada paso con calma y te acompaño
-                durante tu tratamiento.
+                El láser odontológico y la anestesia computarizada nos ayudan
+                a reducir las molestias durante el tratamiento. La doctora
+                elige su uso según tus necesidades y el procedimiento.
               </p>
             </div>
           </div>

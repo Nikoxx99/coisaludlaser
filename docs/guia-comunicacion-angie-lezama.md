@@ -235,3 +235,13 @@ invitación a contar preocupaciones: priorizar la experiencia de la doctora y
 su acompañamiento. Esta indicación no añade una titulación académica concreta
 ni garantías de ausencia de dolor. La fotografía procede del post de octubre
 con Angie y una niña; su origen está documentado junto a los assets.
+
+### Enfoque actualizado por el usuario
+
+El título adoptado es «Tratamos niños y pacientes nerviosos». El subtítulo,
+facilitado por el usuario, es «Te brindamos una atención delicada, consciente
+y especializada para reducir el dolor y estrés en procedimientos y consultas».
+Los párrafos destacan la experiencia y el trato de la Dra. Angie, junto al
+láser odontológico y la anestesia computarizada para reducir molestias,
+según el procedimiento y las necesidades del paciente. Mantener la imagen
+aprobada. No convertir ese objetivo en una garantía de ausencia de dolor.

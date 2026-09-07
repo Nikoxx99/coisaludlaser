@@ -289,6 +289,7 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
           </span>
           <span className="ed-footer-actions">
             <span className="ed-footer-tag">{data.contacto.footerTag}</span>
+            <a href="/politica-de-datos">Política de datos personales</a>
             <a href={data.brand.adminHref}>Acceso del equipo</a>
           </span>
         </footer>

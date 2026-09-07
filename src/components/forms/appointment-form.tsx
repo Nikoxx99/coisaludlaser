@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ConsultationPayment } from "./consultation-payment";
 import { CalendarCheck, CheckCircle2, Loader2, Send } from "lucide-react";
 
 import type { Service, TeamMember } from "@/lib/types";
@@ -302,6 +304,7 @@ export function AppointmentForm({
             {selectedService?.name ?? fields.service}
           </p>
         </div>
+        <ConsultationPayment slug={fields.service} registered scheduled={Boolean(fields.date && fields.time)} />
         <button
           type="button"
           onClick={() => {
@@ -337,6 +340,7 @@ export function AppointmentForm({
         </div>
       </div>
 
+      <ConsultationPayment slug={fields.service} />
       <div className="mt-5 grid gap-x-4 gap-y-3.5 md:grid-cols-2">
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Servicio
@@ -613,7 +617,7 @@ export function AppointmentForm({
           value={fields.notes}
           onChange={(event) => updateField("notes", event.target.value)}
           className={cn(fieldClass, "min-h-20 resize-y")}
-          placeholder="Indica, si quieres, cómo prefieres que te contactemos."
+          placeholder="Indica cómo prefieres que te contactemos. Evita incluir información clínica sensible."
           maxLength={500}
           aria-invalid={Boolean(firstFieldError(fieldErrors, "notes"))}
           aria-describedby={firstFieldError(fieldErrors, "notes") ? "appointment-notes-error" : undefined}
@@ -636,7 +640,7 @@ export function AppointmentForm({
           required
         />
         <span>
-          Autorizo que COISalud Láser use estos datos para gestionar mi solicitud y contactarme.
+          Autorizo que COISalud Láser use estos datos para gestionar mi solicitud y contactarme, según la <Link href="/politica-de-datos" target="_blank" className="underline underline-offset-4">política de tratamiento de datos personales</Link>.
         </span>
       </label>
 

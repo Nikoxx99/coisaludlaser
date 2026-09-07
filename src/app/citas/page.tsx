@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { consultationRate, formatCOP } from "@/lib/consultation-payments";
 import { AppointmentForm } from "@/components/forms/appointment-form";
 import { PublicLinkButton } from "@/components/public/link-button";
 import { PublicShell } from "@/components/public/public-shell";
@@ -67,6 +68,21 @@ export default async function CitasPage({
           </div>
 
           <aside className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            <section className="rounded-[1.75rem] border border-[var(--tuodonto-line)] bg-white/64 p-5">
+              <p className="tuodonto-eyebrow">Consultas y tarifas</p>
+              <h2 className="tuodonto-display mt-2 text-3xl">Resuelve tus dudas sobre tu sonrisa.</h2>
+              <div className="mt-4 divide-y divide-[var(--tuodonto-line)]">
+                {[{ id: "valoracion-presencial", slug: "valoracion-presencial", name: "Valoración odontológica presencial" }, { id: "consulta-virtual", slug: "consulta-virtual", name: "Consulta virtual para resolver inquietudes" }].map((service) => {
+                  const rate = consultationRate(service.slug);
+                  return rate ? <div key={service.id} className="py-4">
+                    <h3 className="text-sm font-semibold">{service.name}</h3>
+                    <p className="mt-2 text-2xl font-semibold">{formatCOP(rate.online)} <span className="text-xs font-normal">COP en línea</span></p>
+                    <p className="mt-1 text-xs text-[var(--tuodonto-taupe)]">Tarifa habitual: {formatCOP(rate.regular)} COP</p>
+                  </div> : null;
+                })}
+              </div>
+              <p className="mt-3 text-sm leading-6 text-[var(--tuodonto-taupe)]">Los procedimientos se cotizan después de valorar tu caso. La consulta virtual permite resolver inquietudes; si necesitas un examen clínico, te orientaremos para la atención presencial.</p>
+            </section>
             <div className="rounded-[1.75rem] border border-[var(--tuodonto-line)] bg-white/64 p-5 shadow-[0_20px_60px_rgba(4,21,67,.07)]">
               <p className="tuodonto-eyebrow">Antes de agendar</p>
               <h2 className="tuodonto-display mt-2 text-3xl leading-none text-[var(--tuodonto-brown)]">

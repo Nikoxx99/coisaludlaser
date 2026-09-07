@@ -351,6 +351,7 @@ export async function PublicShell({
               </a>
             </div>
           </div>
+          <div className="mx-auto mt-7 max-w-7xl border-t border-[var(--tuodonto-line)] pt-5 text-sm"><Link href="/politica-de-datos" className="tuodonto-focus underline underline-offset-4">Política de tratamiento de datos personales</Link></div>
         </footer>
       </main>
 

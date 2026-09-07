@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://coisaludlaser.com";
-  return ["", "/nosotros", "/servicios", "/citas", "/contacto", "/valora"].map(
+  return ["", "/nosotros", "/servicios", "/citas", "/contacto", "/valora", "/politica-de-datos"].map(
     (path) => ({
       url: `${siteUrl}${path}`,
       lastModified: new Date(),

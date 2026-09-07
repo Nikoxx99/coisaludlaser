@@ -5,7 +5,6 @@ import type {
 } from "@/components/landing/types";
 import {
   getBrandImages,
-  getLandingCopy,
   getNavigationSettings,
   getServices,
   getSiteSettings,
@@ -16,18 +15,16 @@ import { getTuOdontoAdminUrl } from "@/lib/tuodonto-api";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [settings, landing, services, brandImages, navigation] =
+  const [settings, services, brandImages, navigation] =
     await Promise.all([
       getSiteSettings(),
-      getLandingCopy(),
       getServices(),
       getBrandImages(),
       getNavigationSettings(),
     ]);
 
-  const editorial = landing.editorial;
   const whatsappHref = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(
-    `Hola ${settings.brandName}, quiero agendar una valoración.`
+    `Hola, equipo de ${settings.brandName}. Quisiera información para agendar mi cita.`
   )}`;
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${settings.address} ${settings.city}`.trim()
@@ -35,11 +32,11 @@ export default async function Home() {
 
   const nav: EditorialNavItem[] = [
     { label: "Inicio", href: "/" },
-    navigation.public.nosotros && { label: "Nosotros", href: "/nosotros" },
-    navigation.public.servicios && { label: "Servicios", href: "/servicios" },
-    navigation.public.citas && { label: "Citas", href: "/citas" },
+    navigation.public.nosotros && { label: "Conoce al equipo", href: "/nosotros" },
+    navigation.public.servicios && { label: "Nuestros servicios", href: "/servicios" },
+    navigation.public.citas && { label: "Agenda tu cita", href: "/citas" },
     navigation.public.tienda && { label: "Tienda", href: "/tienda" },
-    navigation.public.valora && { label: "Valora", href: "/valora" },
+    navigation.public.valora && { label: "Cuéntanos cómo te fue", href: "/valora" },
     navigation.public.contacto && { label: "Contacto", href: "/contacto" },
   ].filter((item): item is EditorialNavItem => Boolean(item));
 
@@ -57,6 +54,8 @@ export default async function Home() {
     fit: brandImages[key]?.fit === "fill" ? ("fill" as const) : ("cover" as const),
   });
 
+  // Voz editorial de COISalud según docs/guia-comunicacion-angie-lezama.md.
+  // Servicios, imágenes, contacto y visibilidad de reservas siguen viniendo de la API.
   const data: EditorialLandingData = {
     brand: {
       name: settings.brandName,
@@ -70,52 +69,60 @@ export default async function Home() {
     },
     nav,
     hero: {
-      word: editorial.heroWord,
-      taglineTop: editorial.heroTaglineTop,
-      taglineBottom: editorial.heroTaglineBottom,
-      ctaLabel: landing.hero.primaryCta,
+      word: "Más allá por\ntu sonrisa",
+      taglineTop: "Te doy la bienvenida a nuestro consultorio virtual.",
+      taglineBottom: "Cuéntame qué te preocupa de tu sonrisa.",
+      ctaLabel: "Agenda tu cita",
       ctaHref: navigation.public.citas ? "/citas" : null,
-      rail: editorial.railLabels.map((label, index) => ({
+      rail: ["Bienvenida", "Tu sonrisa", "Tus dudas", "Tu cita"].map((label, index) => ({
         num: String(index + 1).padStart(2, "0"),
         label,
       })),
-      quote: editorial.heroQuote,
-      quoteAuthor: editorial.heroQuoteAuthor,
+      quote: "",
+      quoteAuthor: "",
     },
     panels: {
-      headers: editorial.panelHeaders,
-      labels: editorial.panelLabels,
+      headers: ["Bienvenida", "Nuestros servicios", "Hablemos con calma", "Ven al consultorio"],
+      labels: ["Bienvenida", "Tu sonrisa", "Tus dudas", "Tu cita"],
     },
     precision: {
-      title: landing.hero.title,
-      // sin punto final: el componente aplica el remate tipografico
-      accent: landing.hero.accent.replace(/[.\s]+$/, ""),
-      doctorLabel: settings.brandName,
-      ctaLabel: landing.hero.primaryCta,
+      title: "Soy la Dra. Angie Lezama.",
+      accent: "Qué gusto tenerte aquí.",
+      doctorLabel: "Dra. Angie Lezama",
+      ctaLabel: "Agenda tu cita",
     },
     sonrisa: {
-      word: editorial.sonrisaWord,
-      kicker: editorial.sonrisaKicker,
-      kickerAccent: editorial.sonrisaKickerAccent,
+      word: "CONTIGO",
+      kicker: "Hablemos de",
+      kickerAccent: "tu sonrisa.",
       treatments,
-      exploreLabel: landing.services.allCta,
+      exploreLabel: "Conoce nuestros servicios",
       exploreHref: navigation.public.servicios ? "/servicios" : null,
     },
     tecnologia: {
-      title: editorial.tecnologiaTitle,
-      accent: editorial.tecnologiaAccent,
-      subTop: editorial.tecnologiaSubTop,
-      subBottom: editorial.tecnologiaSubBottom,
-      bullets: editorial.tecnologiaBullets,
-      badge: editorial.tecnologiaBadge,
+      title: "Con calma,",
+      accent: "a tu ritmo.",
+      subTop: "Quiero que puedas preguntar con confianza.",
+      subBottom: "Lo que sientes también importa.",
+      questions: [
+        {
+          title: "¿Te pone nervioso ir al odontólogo?",
+          answer: "Cuéntanos al agendar tu cita. Queremos saber qué te inquieta y conversar contigo antes de empezar.",
+        },
+        {
+          title: "¿Tienes dudas sobre un tratamiento?",
+          answer: "No tienes que llegar con todo resuelto. En tu valoración revisamos qué opción es adecuada para ti y te explicamos en qué consiste.",
+        },
+      ],
+      badge: "Te escuchamos",
     },
     contacto: {
-      title: landing.finalCta.title,
-      ctaLabel: landing.finalCta.primaryCta,
+      title: "Demos el primer paso por tu sonrisa.",
+      ctaLabel: "Agenda tu cita",
       ctaHref: navigation.public.citas ? "/citas" : null,
-      word: editorial.contactoWord,
-      directions: editorial.contactoDirections,
-      footerTag: editorial.footerTag,
+      word: "NOS VEMOS",
+      directions: "Cómo llegar al consultorio",
+      footerTag: "Vamos más allá por tu sonrisa.",
     },
     images: {
       portrait: image("editorialPortrait"),

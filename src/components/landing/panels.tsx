@@ -111,16 +111,13 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
             {data.tecnologia.subTop} {data.tecnologia.subBottom}
           </p>
           <div className="ed-tecnologia-list" data-scene-reveal>
-            {data.tecnologia.bullets.slice(0, 2).map((bullet) => (
-              <details key={bullet} name="tecnologia-landing">
+            {data.tecnologia.questions.map((question) => (
+              <details key={question.title} name="tecnologia-landing">
                 <summary>
                   <span aria-hidden="true">+</span>
-                  {bullet}
+                  {question.title}
                 </summary>
-                <p>
-                  Configura en el panel qué significa “{bullet}” para tu clínica y
-                  publica únicamente información verificada por tu equipo.
-                </p>
+                <p>{question.answer}</p>
               </details>
             ))}
           </div>
@@ -238,7 +235,7 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
           </span>
           <span className="ed-footer-actions">
             <span className="ed-footer-tag">{data.contacto.footerTag}</span>
-            <a href={data.brand.adminHref}>Acceso Panel</a>
+            <a href={data.brand.adminHref}>Acceso del equipo</a>
           </span>
         </footer>
       </section>

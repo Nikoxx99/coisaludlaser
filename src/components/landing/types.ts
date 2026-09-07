@@ -10,8 +10,7 @@ export type EditorialNavItem = {
   href: string;
 };
 
-// Datos serializables que el Server Component resuelve por tenant (copy del
-// admin + imagenes de marca + servicios) y entrega al arbol cliente de GSAP.
+// Voz editorial local + datos e imágenes de la API, serializados para GSAP.
 export type EditorialLandingData = {
   brand: {
     name: string;
@@ -57,7 +56,7 @@ export type EditorialLandingData = {
     accent: string;
     subTop: string;
     subBottom: string;
-    bullets: string[];
+    questions: { title: string; answer: string }[];
     badge: string;
   };
   contacto: {

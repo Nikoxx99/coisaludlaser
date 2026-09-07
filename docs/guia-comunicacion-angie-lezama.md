@@ -215,3 +215,13 @@ En esta implementación, el texto fijo y las etiquetas de `/servicios` siguen la
 Para afinar la voz oral, el siguiente material útil son transcripciones verificadas de videos donde hable la doctora, especialmente respuestas a preguntas y explicaciones en consulta. Registrar archivo, minuto y frase; separar guion comercial de habla espontánea. Incorporar patrones que aparezcan varias veces y evitar generalizar una broma o una campaña aislada.
 
 Actualizar esta guía cuando la doctora o el usuario corrijan una expresión. Mantener los ejemplos aceptados y documentar el motivo del cambio. La autenticidad debe avanzar con evidencia, no con una personalidad inventada.
+
+## 13. Aplicación en la landing
+
+La landing adopta una bienvenida editorial en primera persona de la Dra. Angie Lezama, según la dirección del usuario: «Soy la Dra. Angie Lezama. Qué gusto tenerte aquí». Es texto nuevo para el sitio, no una cita transcrita. La voz singular se reserva a la bienvenida y la invitación a preguntar; la atención, los servicios y la reserva hablan desde el equipo.
+
+El recorrido es bienvenida → cuidado de tu sonrisa → dudas y nervios → invitación al consultorio. La llamada principal es «Agenda tu cita» y el cierre conserva «Vamos más allá por tu sonrisa». Los desplegables responden inquietudes del paciente, sin instrucciones administrativas ni beneficios tecnológicos no verificados.
+
+Los textos editoriales de esta landing se mantienen en `src/app/page.tsx`. El catálogo, las imágenes, los datos de contacto y la visibilidad de reservas siguen llegando de TuOdonto; esta edición no cambia los textos administrados de servicios.
+
+Por indicación del usuario, el título principal conserva «Más allá por tu sonrisa», con el mismo salto de línea después de «por». La bienvenida de Angie aparece como texto de apoyo.

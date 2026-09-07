@@ -38,9 +38,9 @@ export function MenuOverlay({
         <span>{data.brand.address}</span>
         <a href={`tel:${data.brand.phone}`}>{data.brand.phone}</a>
         <a href={data.brand.whatsappHref} target="_blank" rel="noreferrer">
-          WhatsApp
+          Escríbenos por WhatsApp
         </a>
-        <a href={data.brand.adminHref}>Acceso Panel</a>
+        <a href={data.brand.adminHref}>Acceso del equipo</a>
       </div>
     </div>
   );

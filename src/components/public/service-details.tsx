@@ -1,19 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarClock,
-  CheckCircle2,
-  ShieldCheck,
-  Sparkles,
-  UsersRound,
-} from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Plus } from "lucide-react";
 
 import { PublicLinkButton } from "@/components/public/link-button";
 import type { BrandImage, Service, ServiceCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
 const serviceGuides: Record<
   string,
   {
@@ -28,7 +19,7 @@ const serviceGuides: Record<
       "Busca alinear dientes, mejorar mordida y hacer que la sonrisa se vea más proporcionada sin perder naturalidad.",
     checks: ["Mordida y apiñamiento", "Espacios y línea media", "Hábitos y controles"],
     path: ["Valoración", "Plan de movimiento", "Controles periódicos"],
-    note: "La alternativa se define después del diagnóstico, no antes.",
+    note: "En tu valoración revisamos qué opción es adecuada para ti.",
   },
   endodoncia: {
     outcome:
@@ -54,7 +45,7 @@ const serviceGuides: Record<
   "higiene-oral": {
     outcome:
       "Remueve placa, cálculo y pigmentaciones superficiales mientras ajusta tu rutina diaria de cuidado.",
-    checks: ["Acúmulo de placa", "Técnica de cepillado", "Sensibilidad"],
+    checks: ["Placa acumulada", "Técnica de cepillado", "Sensibilidad"],
     path: ["Revisión inicial", "Profilaxis", "Guía de cuidado en casa"],
     note: "El resultado se sostiene con hábitos claros y controles a tiempo.",
   },
@@ -62,7 +53,7 @@ const serviceGuides: Record<
     outcome:
       "Recupera función, mordida y estética cuando hay desgaste, fracturas, ausencias o restauraciones antiguas.",
     checks: ["Mordida y estabilidad", "Dientes comprometidos", "Materiales indicados"],
-    path: ["Diagnóstico por fases", "Plan restaurativo", "Ajuste y control"],
+    path: ["Valoración", "Plan de tratamiento", "Ajuste y control"],
     note: "Se planea para que la sonrisa se vea bien y funcione bien.",
   },
   odontopediatria: {
@@ -136,7 +127,7 @@ function guideFor(service: Service) {
       outcome: service.summary,
       checks: ["Diagnóstico", "Indicación clínica", "Seguimiento"],
       path: ["Valoración", "Plan de tratamiento", "Control"],
-      note: "El equipo define la ruta después de revisar tu caso.",
+      note: "En tu cita revisamos qué cuidado necesitas.",
     }
   );
 }
@@ -149,11 +140,6 @@ function specialistsFor(service: Service) {
       : [];
 }
 
-/**
- * Detalle publico de servicios. La ruta /servicios?servicio=slug pinta el
- * contenido en pagina, sin modal, para que cada servicio sea navegable,
- * compartible y claro para pacientes.
- */
 export function ServiceDetails({
   services,
   categories = [],
@@ -170,261 +156,115 @@ export function ServiceDetails({
   contactEnabled?: boolean;
 }) {
   if (services.length === 0) {
-    return (
-      <div className="border-y border-[var(--tuodonto-line)] py-10">
-        <p className="text-sm leading-7 text-[var(--tuodonto-taupe)]">
-          Todavía no hay servicios públicos disponibles.
-        </p>
-      </div>
-    );
+    return <p className="border-t border-[var(--tuodonto-line)] py-10 text-sm text-[var(--tuodonto-taupe)]">Por ahora no hay servicios para mostrar.</p>;
   }
 
-  const categoryMap = new Map(
-    categories.map((category) => [category.slug, category])
-  );
-  const selectedService =
-    services.find((service) => service.slug === selectedServiceSlug) ??
-    services[0];
-  const selectedIndex = services.findIndex(
-    (service) => service.slug === selectedService.slug
-  );
-  const previousService =
-    services[(selectedIndex - 1 + services.length) % services.length];
-  const nextService = services[(selectedIndex + 1) % services.length];
-  const imageSrc = selectedService.imageUrl ?? fallbackImage?.src;
-  const imageAlt = selectedService.imageUrl
-    ? selectedService.name
-    : fallbackImage?.alt ?? selectedService.name;
-  const categoryLabel =
-    categoryMap.get(selectedService.categorySlug)?.name ?? "Servicio clínico";
-  const guide = guideFor(selectedService);
-  const specialists = specialistsFor(selectedService);
+  const selected = services.find((service) => service.slug === selectedServiceSlug) ?? services[0];
+  const imageSrc = selected.imageUrl || fallbackImage?.src;
+  const guide = guideFor(selected);
+  const specialists = specialistsFor(selected);
+  const category = categories.find((item) => item.slug === selected.categorySlug)?.name;
+  const serviceLinks = services.map((service) => (
+    <Link
+      key={service.id}
+      href={`/servicios?servicio=${encodeURIComponent(service.slug)}`}
+      scroll={false}
+      aria-current={service.slug === selected.slug ? "page" : undefined}
+      className={cn(
+        "tuodonto-focus flex min-h-12 items-center justify-between gap-3 rounded-lg px-3 py-3 text-sm transition-colors",
+        service.slug === selected.slug
+          ? "bg-[rgba(3,80,225,.08)] font-semibold text-[var(--tuodonto-gold)]"
+          : "text-[var(--tuodonto-taupe)] hover:bg-white/70 hover:text-[var(--tuodonto-brown)]"
+      )}
+    >
+      <span>{service.name}</span>
+      {service.slug === selected.slug ? <Check className="size-4 shrink-0" aria-hidden="true" /> : null}
+    </Link>
+  ));
+  const summaryClass = "tuodonto-focus flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-5 text-sm font-medium text-[var(--tuodonto-brown)] [&::-webkit-details-marker]:hidden";
+  const plus = <Plus className="size-4 shrink-0 text-[var(--tuodonto-gold)] transition-transform group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true" />;
 
   return (
-    <div className="space-y-8">
-      <nav
-        aria-label="Cambiar servicio"
-        className="border-y border-[var(--tuodonto-line)] py-3"
-      >
-        <div className="tuodonto-service-scroll -mx-2 flex gap-2 overflow-x-auto px-2 pb-2">
-          {services.map((service) => {
-            const isSelected = service.slug === selectedService.slug;
-
-            return (
-              <Link
-                key={service.id}
-                href={`/servicios?servicio=${service.slug}`}
-                scroll={false}
-                aria-current={isSelected ? "page" : undefined}
-                className={cn(
-                  "tuodonto-focus inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 text-sm font-semibold transition active:translate-y-px",
-                  isSelected
-                    ? "border-[var(--tuodonto-gold)] bg-[rgba(3,80,225,.1)] text-[var(--tuodonto-brown)]"
-                    : "border-[var(--tuodonto-line)] bg-white/55 text-[var(--tuodonto-taupe)] hover:-translate-y-0.5 hover:bg-white hover:text-[var(--tuodonto-brown)]"
-                )}
-              >
-                {service.name}
-              </Link>
-            );
-          })}
-        </div>
+    <div className="grid min-w-0 items-start gap-7 md:grid-cols-[minmax(180px,220px)_minmax(0,1fr)] md:gap-10 xl:grid-cols-[248px_minmax(0,1fr)]">
+      <nav aria-label="Elegir servicio" className="hidden md:block">
+        <p className="mb-5 px-3 text-[.65rem] font-semibold uppercase tracking-[.18em] text-[var(--tuodonto-taupe)]">Nuestros servicios</p>
+        <div className="space-y-1">{serviceLinks}</div>
       </nav>
-
-      <article className="overflow-hidden rounded-[2rem] border border-[var(--tuodonto-line)] bg-white/62 shadow-[0_24px_70px_rgba(71,49,34,.09)]">
-        <div className="grid xl:grid-cols-[minmax(0,1.04fr)_22rem]">
-          <div>
-            {imageSrc ? (
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-[var(--tuodonto-mist)]">
-                <Image
-                  src={imageSrc}
-                  alt={imageAlt}
-                  fill
-                  sizes="(min-width: 1280px) 48rem, 100vw"
-                  className="object-cover"
-                  priority
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(70,53,42,.32),transparent_48%)]" />
-              </div>
-            ) : null}
-
-            <div className="p-6 md:p-8">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex rounded-full bg-[var(--tuodonto-pearl)] px-3 py-1 text-xs font-semibold text-[var(--tuodonto-taupe)]">
-                  {categoryLabel}
-                </span>
-                {selectedService.featured ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[rgba(3,210,246,.14)] px-3 py-1 text-xs font-semibold text-[var(--tuodonto-brown)]">
-                    <Sparkles className="size-3" aria-hidden="true" />
-                    Destacado
-                  </span>
-                ) : null}
-              </div>
-
-              <h2 className="tuodonto-display mt-5 max-w-3xl text-5xl leading-none text-[var(--tuodonto-brown)] md:text-6xl">
-                {selectedService.name}
-              </h2>
-              <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--tuodonto-taupe)]">
-                {selectedService.description}
-              </p>
-
-              <div className="mt-8 grid gap-6 border-y border-[var(--tuodonto-line)] py-6 md:grid-cols-2">
-                <div>
-                  <div className="flex items-center gap-3 text-sm font-semibold text-[var(--tuodonto-brown)]">
-                    <CheckCircle2
-                      className="size-5 text-[var(--tuodonto-gold)]"
-                      aria-hidden="true"
-                    />
-                    Qué busca lograr
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-[var(--tuodonto-taupe)]">
-                    {guide.outcome}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-3 text-sm font-semibold text-[var(--tuodonto-brown)]">
-                    <ShieldCheck
-                      className="size-5 text-[var(--tuodonto-gold)]"
-                      aria-hidden="true"
-                    />
-                    Qué revisamos
-                  </div>
-                  <ul className="mt-3 space-y-2 text-sm leading-6 text-[var(--tuodonto-taupe)]">
-                    {guide.checks.map((item) => (
-                      <li key={item} className="flex gap-2">
-                        <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--tuodonto-gold)]" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                {appointmentsEnabled &&
-                selectedService.publicBookingEnabled !== false ? (
-                  <PublicLinkButton
-                    href={`/citas?servicio=${selectedService.slug}`}
-                  >
-                    Agendar este servicio
-                  </PublicLinkButton>
-                ) : null}
-                {contactEnabled ? (
-                  <PublicLinkButton href="/contacto" variant="sky">
-                    Resolver una duda
-                  </PublicLinkButton>
-                ) : null}
-              </div>
-            </div>
+      <details key={`selector-${selected.slug}`} className="group rounded-xl border border-[var(--tuodonto-line)] bg-white/40 md:hidden">
+        <summary className="tuodonto-focus flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-4 py-3 [&::-webkit-details-marker]:hidden">
+          <span><span className="block text-xs text-[var(--tuodonto-taupe)]">Conoce nuestros servicios</span><span className="mt-1 block text-sm font-semibold text-[var(--tuodonto-gold)]">{selected.name}</span></span>
+          <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+        <nav aria-label="Elegir servicio en móvil" className="border-t border-[var(--tuodonto-line)] p-2">{serviceLinks}</nav>
+      </details>
+      <article key={selected.slug} aria-labelledby="service-title" className="min-w-0">
+        {imageSrc ? (
+          <div className="relative mb-7 aspect-[16/9] overflow-hidden rounded-2xl bg-[var(--tuodonto-mist)] xl:aspect-[5/2]">
+            <Image src={imageSrc} alt={selected.imageUrl ? selected.name : fallbackImage?.alt ?? selected.name} fill sizes="(min-width: 1280px) 55vw, (min-width: 768px) 60vw, 100vw" className="object-cover" priority />
           </div>
-
-          <aside className="border-t border-[var(--tuodonto-line)] bg-[rgba(255,255,255,.42)] p-6 md:p-8 xl:border-l xl:border-t-0">
-            <div className="flex items-center gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[rgba(3,80,225,.1)] text-[var(--tuodonto-brown)]">
-                <CalendarClock className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[.16em] text-[var(--tuodonto-gold-deep)]">
-                  Tu ruta de atención
-                </p>
-                <p className="text-sm leading-6 text-[var(--tuodonto-taupe)]">
-                  {guide.note}
-                </p>
-              </div>
+        ) : null}
+        <p className="text-[.65rem] font-semibold uppercase tracking-[.18em] text-[var(--tuodonto-gold)]">{category ?? "Servicio clínico"}</p>
+        <h2 id="service-title" className="mt-3 break-words text-3xl font-semibold tracking-tight text-[var(--tuodonto-brown)] md:text-4xl">{selected.name}</h2>
+        <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--tuodonto-taupe)]">{selected.summary}</p>
+        <div className="mb-8 mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
+          {appointmentsEnabled && selected.publicBookingEnabled !== false ? (
+            <PublicLinkButton href={`/citas?servicio=${encodeURIComponent(selected.slug)}`}>Agenda tu cita</PublicLinkButton>
+          ) : null}
+          {contactEnabled ? <Link href="/contacto" className="tuodonto-focus inline-flex min-h-11 items-center gap-2 text-sm text-[var(--tuodonto-taupe)] hover:text-[var(--tuodonto-gold)]">¿Tienes alguna pregunta?<ArrowUpRight className="size-4" aria-hidden="true" /></Link> : null}
+        </div>
+        <div className="divide-y divide-[var(--tuodonto-line)] border-y border-[var(--tuodonto-line)]">
+          <details className="group">
+            <summary className={summaryClass}>Sobre este tratamiento{plus}</summary>
+            <div className="space-y-5 pb-6 text-sm leading-7 text-[var(--tuodonto-taupe)]">
+              <p>{selected.description}</p>
+              <div><h3 className="mb-2 font-semibold text-[var(--tuodonto-brown)]">Qué busca lograr</h3><p>{guide.outcome}</p></div>
+              <div><h3 className="mb-2 font-semibold text-[var(--tuodonto-brown)]">Qué revisamos</h3><ul className="list-disc space-y-1 pl-5">{guide.checks.map((item) => <li key={item}>{item}</li>)}</ul></div>
             </div>
-
-            <ol className="mt-7 space-y-4">
-              {guide.path.map((step, index) => (
-                <li key={step} className="grid grid-cols-[2.25rem_1fr] gap-3">
-                  <span className="grid size-9 place-items-center rounded-full border border-[var(--tuodonto-line)] bg-white/70 text-xs font-bold text-[var(--tuodonto-brown)]">
-                    {index + 1}
-                  </span>
-                  <span className="pt-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
-                    {step}
-                  </span>
-                </li>
-              ))}
-            </ol>
-
-            <div className="mt-8 border-t border-[var(--tuodonto-line)] pt-7">
-              <div className="flex items-center gap-3">
-                <UsersRound
-                  className="size-5 text-[var(--tuodonto-gold)]"
-                  aria-hidden="true"
-                />
-                <h3 className="text-sm font-semibold text-[var(--tuodonto-brown)]">
-                  Profesionales que pueden atenderte
-                </h3>
-              </div>
-
+          </details>
+          <details className="group">
+            <summary className={summaryClass}>Cómo es tu atención{plus}</summary>
+            <div className="pb-6 text-sm leading-7 text-[var(--tuodonto-taupe)]"><p>{guide.note}</p><ol className="mt-4 space-y-3">{guide.path.map((step, index) => <li key={step} className="flex items-center gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-[rgba(3,80,225,.08)] text-xs font-semibold text-[var(--tuodonto-gold)]">{index + 1}</span>{step}</li>)}</ol></div>
+          </details>
+          <details className="group">
+            <summary className={summaryClass}>Quién puede atenderte{plus}</summary>
+            <div className="space-y-4 pb-6">
               {specialists.length > 0 ? (
-                <div className="mt-5 divide-y divide-[var(--tuodonto-line)]">
-                  {specialists.map((member) => (
-                    <div key={member.id} className="flex gap-4 py-4 first:pt-0">
-                      <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--tuodonto-line)] bg-[var(--tuodonto-mist)]">
-                        {member.avatarUrl ? (
-                          <Image
-                            src={member.avatarUrl}
-                            alt={member.name}
-                            fill
-                            sizes="56px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <span className="tuodonto-display text-2xl text-[var(--tuodonto-gold)]">
-                            {member.name.charAt(0)}
-                          </span>
-                        )}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-semibold leading-6 text-[var(--tuodonto-brown)]">
-                          {member.name}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-[var(--tuodonto-taupe)]">
-                          {member.specialty}
-                        </p>
-                      </div>
+                specialists.map((member) => (
+                  <div key={member.id} className="flex items-center gap-3">
+                    <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--tuodonto-mist)]">
+                      {member.avatarUrl ? (
+                        <Image
+                          src={member.avatarUrl}
+                          alt=""
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-lg text-[var(--tuodonto-gold)]">
+                          {member.name.charAt(0)}
+                        </span>
+                      )}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--tuodonto-brown)]">
+                        {member.name}
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--tuodonto-taupe)]">
+                        {member.specialty}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))
               ) : (
-                <p className="mt-4 text-sm leading-7 text-[var(--tuodonto-taupe)]">
-                  El equipo asigna el profesional indicado al confirmar la
-                  agenda.
+                <p className="text-sm leading-7 text-[var(--tuodonto-taupe)]">
+                  El equipo asigna el profesional indicado al confirmar la agenda.
                 </p>
               )}
             </div>
-          </aside>
+          </details>
         </div>
       </article>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Link
-          href={`/servicios?servicio=${previousService.slug}`}
-          scroll={false}
-          className="tuodonto-focus inline-flex min-h-14 items-center justify-between gap-4 rounded-full border border-[var(--tuodonto-line)] bg-white/55 px-5 text-sm font-semibold text-[var(--tuodonto-brown)] transition hover:-translate-y-0.5 hover:bg-white active:translate-y-px"
-        >
-          <span className="inline-flex items-center gap-2">
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Anterior
-          </span>
-          <span className="truncate text-[var(--tuodonto-taupe)]">
-            {previousService.name}
-          </span>
-        </Link>
-        <Link
-          href={`/servicios?servicio=${nextService.slug}`}
-          scroll={false}
-          className="tuodonto-focus inline-flex min-h-14 items-center justify-between gap-4 rounded-full border border-[var(--tuodonto-line)] bg-white/55 px-5 text-sm font-semibold text-[var(--tuodonto-brown)] transition hover:-translate-y-0.5 hover:bg-white active:translate-y-px"
-        >
-          <span className="truncate text-[var(--tuodonto-taupe)]">
-            {nextService.name}
-          </span>
-          <span className="inline-flex items-center gap-2">
-            Siguiente
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </span>
-        </Link>
-      </div>
     </div>
   );
 }

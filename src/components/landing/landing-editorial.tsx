@@ -12,7 +12,7 @@ import type { EditorialLandingData } from "./types";
 
 import "./landing.css";
 
-const SCENE_COUNT = 4;
+const SCENE_COUNT = 5;
 
 export function LandingEditorial({ data }: { data: EditorialLandingData }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -203,7 +203,7 @@ export function LandingEditorial({ data }: { data: EditorialLandingData }) {
           )}
         </Link>
         <span className="ed-mobile-index" aria-hidden="true">
-          <strong>{String(activeScene + 1).padStart(2, "0")}</strong> / 04
+          <strong>{String(activeScene + 1).padStart(2, "0")}</strong> / {String(SCENE_COUNT).padStart(2, "0")}
         </span>
         <button
           ref={menuButtonRef}

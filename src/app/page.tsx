@@ -74,7 +74,7 @@ export default async function Home() {
       taglineBottom: "Cuéntame qué te preocupa de tu sonrisa.",
       ctaLabel: "Agenda tu cita",
       ctaHref: navigation.public.citas ? "/citas" : null,
-      rail: ["Bienvenida", "Tu sonrisa", "Tus dudas", "Tu cita"].map((label, index) => ({
+      rail: ["Bienvenida", "Tu sonrisa", "En confianza", "Tus dudas", "Tu cita"].map((label, index) => ({
         num: String(index + 1).padStart(2, "0"),
         label,
       })),
@@ -82,8 +82,8 @@ export default async function Home() {
       quoteAuthor: "",
     },
     panels: {
-      headers: ["Bienvenida", "Nuestros servicios", "Hablemos con calma", "Ven al consultorio"],
-      labels: ["Bienvenida", "Tu sonrisa", "Tus dudas", "Tu cita"],
+      headers: ["Bienvenida", "Nuestros servicios", "Niños y pacientes nerviosos", "Hablemos con calma", "Ven al consultorio"],
+      labels: ["Bienvenida", "Tu sonrisa", "En confianza", "Tus dudas", "Tu cita"],
     },
     precision: {
       title: "Soy la Dra. Angie Lezama.",

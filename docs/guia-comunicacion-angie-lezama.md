@@ -225,3 +225,13 @@ El recorrido es bienvenida → cuidado de tu sonrisa → dudas y nervios → inv
 Los textos editoriales de esta landing se mantienen en `src/app/page.tsx`. El catálogo, las imágenes, los datos de contacto y la visibilidad de reservas siguen llegando de TuOdonto; esta edición no cambia los textos administrados de servicios.
 
 Por indicación del usuario, el título principal conserva «Más allá por tu sonrisa», con el mismo salto de línea después de «por». La bienvenida de Angie aparece como texto de apoyo.
+
+## 14. Niños y pacientes nerviosos
+
+El usuario indicó que la Dra. Angie Lezama se especializa en el tratamiento de
+niños y pacientes nerviosos. La sección presenta esa experiencia como mensaje
+principal: «Niños y pacientes nerviosos, en buenas manos». No abrir desde una
+invitación a contar preocupaciones: priorizar la experiencia de la doctora y
+su acompañamiento. Esta indicación no añade una titulación académica concreta
+ni garantías de ausencia de dolor. La fotografía procede del post de octubre
+con Angie y una niña; su origen está documentado junto a los assets.

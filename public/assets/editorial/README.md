@@ -43,3 +43,10 @@ From `web/`:
 ```sh
 uv run --python 3.12 --with 'rembg[cpu]' python scripts/extract_mock_assets.py
 ```
+
+## Atención a niños y pacientes nerviosos
+
+`angie-atencion-ninos.webp` proviene de `Octubre/POST.psd`, grupo `7`,
+capa de fotografía `Capa 8`, del archivo de posts de COISALUD 2025 facilitado
+por el usuario. Se exportó la fotografía existente, sin textos de campaña,
+sin generar ni retocar personas. WebP a calidad 86, 1080 × 1388.

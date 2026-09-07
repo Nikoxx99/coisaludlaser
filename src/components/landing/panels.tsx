@@ -89,10 +89,64 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
       </section>
 
       <section
+        id="atencion-con-calma"
+        className="ed-scene ed-care"
+        data-scene
+        data-scene-index="2"
+        data-panel-theme="light"
+        data-mobile-theme="light"
+        aria-labelledby="ed-care-title"
+      >
+        <figure className="ed-care-photo" data-scene-photo>
+          <Image
+            src="/assets/editorial/angie-atencion-ninos.webp"
+            alt="La Dra. Angie Lezama y una niña sonríen juntas en el consultorio."
+            fill
+            sizes="(max-width: 1023px) 100vw, 45vw"
+            style={{ objectFit: "cover", objectPosition: "50% 32%" }}
+          />
+        </figure>
+        <div className="ed-care-copy">
+          <SceneHeader index="03" label={data.panels.headers[2]} />
+          <h2 id="ed-care-title" data-scene-title>
+            Niños y pacientes nerviosos, <span>en buenas manos.</span>
+          </h2>
+          <p className="ed-care-intro" data-scene-reveal>
+            Soy la Dra. Angie Lezama y me especializo en la atención de niños
+            y pacientes nerviosos.
+          </p>
+          <div className="ed-care-topics" data-scene-reveal>
+            <div>
+              <h3>Para la sonrisa de tu hijo</h3>
+              <p>
+                Acompaño a tu hijo en el cuidado de sus dientes con un trato
+                cercano y explicaciones que pueda entender. Su confianza
+                también es parte de la atención.
+              </p>
+            </div>
+            <div>
+              <h3>Una atención pensada para ti</h3>
+              <p>
+                Si ir al odontólogo te genera nervios, estás en el lugar
+                indicado. Te explico cada paso con calma y te acompaño
+                durante tu tratamiento.
+              </p>
+            </div>
+          </div>
+          {data.hero.ctaHref ? (
+            <Link href={data.hero.ctaHref} className="ed-primary-cta" data-scene-reveal>
+              <span>{data.hero.ctaLabel}</span>
+              <i aria-hidden="true"><MoveRight size={24} strokeWidth={1.8} /></i>
+            </Link>
+          ) : null}
+        </div>
+      </section>
+
+      <section
         id="tecnologia"
         className="ed-scene ed-tecnologia"
         data-scene
-        data-scene-index="2"
+        data-scene-index="3"
         data-panel-theme="dark"
         data-mobile-theme="dark"
         aria-labelledby="ed-tecnologia-title"
@@ -102,7 +156,7 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
         </p>
 
         <div className="ed-tecnologia-copy">
-          <SceneHeader index="03" label={data.panels.headers[2] ?? "Tecnología"} />
+          <SceneHeader index="04" label={data.panels.headers[3] ?? "Tecnología"} />
           <h2 id="ed-tecnologia-title" data-scene-title>
             {data.tecnologia.title}
             <span>{data.tecnologia.accent}</span>
@@ -162,7 +216,7 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
         id="contacto"
         className="ed-scene ed-contacto"
         data-scene
-        data-scene-index="3"
+        data-scene-index="4"
         data-panel-theme="light"
         data-mobile-theme="light"
         aria-labelledby="ed-contacto-title"
@@ -172,7 +226,7 @@ export function StagePanels({ data }: { data: EditorialLandingData }) {
         </p>
 
         <div className="ed-contacto-copy">
-          <SceneHeader index="04" label={data.panels.headers[3] ?? "Contacto"} />
+          <SceneHeader index="05" label={data.panels.headers[4] ?? "Contacto"} />
           <h2 id="ed-contacto-title" data-scene-title>
             {data.contacto.title}
           </h2>

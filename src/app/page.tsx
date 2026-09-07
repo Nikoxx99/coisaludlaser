@@ -82,7 +82,7 @@ export default async function Home() {
       quoteAuthor: "",
     },
     panels: {
-      headers: ["Bienvenida", "Nuestros servicios", "Niños y pacientes nerviosos", "Hablemos con calma", "Ven al consultorio"],
+      headers: ["Bienvenida", "Nuestros servicios", "Niños y pacientes nerviosos", "Tecnología para tu cuidado", "Ven al consultorio"],
       labels: ["Bienvenida", "Tu sonrisa", "En confianza", "Tus dudas", "Tu cita"],
     },
     precision: {
@@ -100,21 +100,21 @@ export default async function Home() {
       exploreHref: navigation.public.servicios ? "/servicios" : null,
     },
     tecnologia: {
-      title: "Con calma,",
-      accent: "a tu ritmo.",
-      subTop: "Quiero que puedas preguntar con confianza.",
-      subBottom: "Lo que sientes también importa.",
+      title: "Tecnología",
+      accent: "que cuida.",
+      subTop: "Láser odontológico y anestesia computarizada:",
+      subBottom: "dos pilares de mi atención para cuidar tu comodidad.",
       questions: [
         {
-          title: "¿Te pone nervioso ir al odontólogo?",
-          answer: "Cuéntanos al agendar tu cita. Queremos saber qué te inquieta y conversar contigo antes de empezar.",
+          title: "Láser odontológico",
+          answer: "Utiliza energía de luz concentrada para trabajar con precisión en procedimientos seleccionados. Según el tratamiento, puede ayudar a reducir las molestias y la intervención sobre los tejidos. En tu valoración te explico cuándo es adecuado para ti.",
         },
         {
-          title: "¿Tienes dudas sobre un tratamiento?",
-          answer: "No tienes que llegar con todo resuelto. En tu valoración revisamos qué opción es adecuada para ti y te explicamos en qué consiste.",
+          title: "Anestesia computarizada",
+          answer: "Un equipo regula la velocidad y la presión con que se aplica el anestésico local. Esa administración gradual y controlada ayuda a que la aplicación sea más cómoda. Así cuidamos este paso del tratamiento, especialmente si te genera nervios.",
         },
       ],
-      badge: "Te escuchamos",
+      badge: "Precisión y comodidad",
     },
     contacto: {
       title: "Demos el primer paso por tu sonrisa.",

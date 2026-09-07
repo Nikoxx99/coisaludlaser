@@ -245,3 +245,16 @@ Los párrafos destacan la experiencia y el trato de la Dra. Angie, junto al
 láser odontológico y la anestesia computarizada para reducir molestias,
 según el procedimiento y las necesidades del paciente. Mantener la imagen
 aprobada. No convertir ese objetivo en una garantía de ausencia de dolor.
+
+## 15. Conservar el papel de la sección de tecnología
+
+La cuarta sección explica los dos pilares tecnológicos de la atención:
+láser odontológico y anestesia computarizada. No sustituirla por mensajes
+generales sobre nervios o preguntas. Conservar las imágenes aprobadas.
+El láser se explica como energía de luz concentrada para procedimientos
+seleccionados; la anestesia computarizada, como administración gradual y
+controlada del anestésico local. Los beneficios dependen del tratamiento.
+
+Referencias de contraste para las explicaciones (consultadas el 7/09/2026):
+- [AAPD: uso de láseres](https://www.aapd.org/globalassets/media/policies_guidelines/p_lasersuse.pdf).
+- [AAPD: anestesia local, técnicas alternativas de administración](https://www.aapd.org/globalassets/media/policies_guidelines/bp_localanesthesia.pdf).

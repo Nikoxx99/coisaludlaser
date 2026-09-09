@@ -1,22 +1,16 @@
 import type { Metadata } from "next";
 import {
-  CalendarDays,
   ChevronDown,
   CircleHelp,
-  Clock,
   CreditCard,
   ExternalLink,
-  ShieldCheck,
 } from "lucide-react";
 
-import { consultationRate, formatCOP } from "@/lib/consultation-payments";
 import { AppointmentForm } from "@/components/forms/appointment-form";
 import { PublicLinkButton } from "@/components/public/link-button";
 import { PublicShell } from "@/components/public/public-shell";
-import { formatWeeklyHours } from "@/lib/business-hours";
 import { doctoraliaUrl } from "@/lib/social-links";
 import {
-  getAvailabilitySlots,
   getBookableServices,
   getLandingCopy,
   getSiteSettings,
@@ -35,11 +29,10 @@ export default async function CitasPage({
 }: {
   searchParams: Promise<{ servicio?: string | string[] }>;
 }) {
-  const [query, services, teamMembers, availabilitySlots, settings, landing] = await Promise.all([
+  const [query, services, teamMembers, settings, landing] = await Promise.all([
     searchParams,
     getBookableServices(),
     getTeamMembers(),
-    getAvailabilitySlots(),
     getSiteSettings(),
     getLandingCopy(),
   ]);
@@ -48,7 +41,6 @@ export default async function CitasPage({
     : query.servicio;
   const whatsappHref = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(`Hola ${settings.brandName}, quiero agendar una cita.`)}`;
   const doctoraliaHref = doctoraliaUrl(settings.doctoralia);
-  const businessHours = formatWeeklyHours(availabilitySlots);
 
   return (
     <PublicShell active="citas" settings={settings}>
@@ -57,7 +49,7 @@ export default async function CitasPage({
         aria-labelledby="citas-form-title"
         className="px-[var(--space-page-x)] py-5 md:py-7 lg:min-h-svh lg:py-6"
       >
-        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(19rem,.7fr)] xl:items-start">
+        <div className="mx-auto max-w-3xl">
           <div>
             <AppointmentForm
               services={services}
@@ -67,100 +59,28 @@ export default async function CitasPage({
             />
           </div>
 
-          <aside className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-            <section className="rounded-[1.75rem] border border-[var(--tuodonto-line)] bg-white/64 p-5">
-              <p className="tuodonto-eyebrow">Consultas y tarifas</p>
-              <h2 className="tuodonto-display mt-2 text-3xl">Resuelve tus dudas sobre tu sonrisa.</h2>
-              <div className="mt-4 divide-y divide-[var(--tuodonto-line)]">
-                {[{ id: "valoracion-presencial", slug: "valoracion-presencial", name: "Valoración odontológica presencial" }, { id: "consulta-virtual", slug: "consulta-virtual", name: "Consulta virtual para resolver inquietudes" }].map((service) => {
-                  const rate = consultationRate(service.slug);
-                  return rate ? <div key={service.id} className="py-4">
-                    <h3 className="text-sm font-semibold">{service.name}</h3>
-                    <p className="mt-2 text-2xl font-semibold">{formatCOP(rate.online)} <span className="text-xs font-normal">COP en línea</span></p>
-                    <p className="mt-1 text-xs text-[var(--tuodonto-taupe)]">Tarifa habitual: {formatCOP(rate.regular)} COP</p>
-                  </div> : null;
-                })}
-              </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--tuodonto-taupe)]">Los procedimientos se cotizan después de valorar tu caso. La consulta virtual permite resolver inquietudes; si necesitas un examen clínico, te orientaremos para la atención presencial.</p>
-            </section>
-            <div className="rounded-[1.75rem] border border-[var(--tuodonto-line)] bg-white/64 p-5 shadow-[0_20px_60px_rgba(4,21,67,.07)]">
-              <p className="tuodonto-eyebrow">Antes de agendar</p>
-              <h2 className="tuodonto-display mt-2 text-3xl leading-none text-[var(--tuodonto-brown)]">
-                Elige un horario disponible.
-              </h2>
-              <div className="mt-5 flex gap-3">
-                <Clock className="mt-0.5 size-5 shrink-0 text-[var(--tuodonto-gold)]" />
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--tuodonto-brown)]">
-                    Horario de atención
-                  </h3>
-                  <div className="mt-1 space-y-0.5 text-xs leading-5 text-[var(--tuodonto-taupe)]">
-                    {businessHours.length > 0 ? (
-                      businessHours.map((line) => (
-                        <p key={line.days}>
-                          <span className="font-medium text-[var(--tuodonto-brown)]">
-                            {line.days}:
-                          </span>{" "}
-                          {line.hours}
-                        </p>
-                      ))
-                    ) : (
-                      <p>Te confirmamos disponibilidad por WhatsApp.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3 border-t border-[var(--tuodonto-line)] pt-4">
-                {[
-                {
-                  icon: CalendarDays,
-                  title: "Valoración inicial",
-                  copy: "Define servicio y prioridad clínica.",
-                },
-                {
-                  icon: ShieldCheck,
-                  title: "Uso de tus datos",
-                  copy: "Se usan para gestionar esta solicitud y contactarte.",
-                },
-              ].map((item) => (
-                <div key={item.title} className="flex gap-3">
-                  <item.icon className="mt-0.5 size-5 shrink-0 text-[var(--tuodonto-gold)]" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-[var(--tuodonto-brown)]">
-                      {item.title}
-                    </h3>
-                    <p className="mt-0.5 text-xs leading-5 text-[var(--tuodonto-taupe)]">
-                      {item.copy}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              </div>
-            </div>
-
-            <div className="grid content-start gap-3 rounded-[1.75rem] border border-[var(--tuodonto-line)] bg-white/48 p-4">
-              <PublicLinkButton
-                href={whatsappHref}
-                external
-                variant="sky"
-                icon="whatsapp"
-                className="w-full"
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <PublicLinkButton
+              href={whatsappHref}
+              external
+              variant="sky"
+              icon="whatsapp"
+              className="w-full"
+            >
+              Prefiero WhatsApp
+            </PublicLinkButton>
+            {doctoraliaHref ? (
+              <a
+                href={doctoraliaHref}
+                target="_blank"
+                rel="noreferrer"
+                className="tuodonto-focus inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--tuodonto-line)] bg-white/70 px-6 text-sm font-semibold text-[var(--tuodonto-brown)] transition hover:-translate-y-0.5 hover:bg-white"
               >
-                Prefiero WhatsApp
-              </PublicLinkButton>
-              {doctoraliaHref ? (
-                <a
-                  href={doctoraliaHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="tuodonto-focus inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--tuodonto-line)] bg-white/70 px-6 text-sm font-semibold text-[var(--tuodonto-brown)] transition hover:-translate-y-0.5 hover:bg-white"
-                >
-                  <ExternalLink className="size-4" aria-hidden="true" />
-                  Agendar por Doctoralia
-                </a>
-              ) : null}
-            </div>
-          </aside>
+                <ExternalLink className="size-4" aria-hidden="true" />
+                Agendar por Doctoralia
+              </a>
+            ) : null}
+          </div>
         </div>
       </section>
 

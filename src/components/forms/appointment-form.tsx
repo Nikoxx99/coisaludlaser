@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ConsultationPayment } from "./consultation-payment";
-import { CalendarCheck, CheckCircle2, Loader2, Send } from "lucide-react";
+import { consultationRate, formatCOP } from "@/lib/consultation-payments";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, RefreshCw, Send } from "lucide-react";
 
 import type { Service, TeamMember } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,8 @@ const discoveryOptions = [
   "Web",
   "Clinica",
 ];
+const steps = ["Servicio", "Fecha y hora", "Tus datos", "Resumen"];
+
 const ANY_TEAM_VALUE = "__first_available__";
 
 function professionalsForService(
@@ -132,6 +135,11 @@ export function AppointmentForm({
     }),
     [initialProfessionals, initialService?.slug]
   );
+  const [step, setStep] = useState(0);
+  const [requestWithoutTime, setRequestWithoutTime] = useState(false);
+  const stepTitle = useRef<HTMLHeadingElement>(null);
+  const [teamFilter, setTeamFilter] = useState(initialFields.teamMemberId);
+  const [refresh, setRefresh] = useState(0);
   const [fields, setFields] = useState<AppointmentFields>(initialFields);
   const [state, setState] = useState<SubmissionState>({
     status: "idle",
@@ -150,20 +158,22 @@ export function AppointmentForm({
   const selectedSpecialist = selectedSpecialists.find(
     (member) => member.id === fields.teamMemberId
   );
+  const filteredSpecialist = selectedSpecialists.find((member) => member.id === teamFilter);
   const selectedDay = availability.find((day) => day.date === fields.date);
 
   useEffect(() => {
-    if (!fields.service) return;
+    if (!fields.service || state.status === "submitting" || state.status === "success") return;
     const controller = new AbortController();
     const params = new URLSearchParams({
       serviceSlug: fields.service,
       days: "30",
     });
-    if (fields.teamMemberId) {
-      params.set("teamMemberId", fields.teamMemberId);
+    if (teamFilter) {
+      params.set("teamMemberId", teamFilter);
     }
     fetch(`/api/availability?${params.toString()}`, {
       signal: controller.signal,
+      cache: "no-store",
     })
       .then(async (response) => {
         const result = (await response.json()) as {
@@ -177,13 +187,21 @@ export function AppointmentForm({
             result.error || result.message || "No pudimos consultar la agenda."
           );
         }
-        const days = result.days ?? [];
+        if (controller.signal.aborted) return;
+        const days = (result.days ?? []).filter((day) => day.slots.length > 0);
         setAvailability(days);
         setAvailabilityState(days.length ? "ready" : "empty");
-        setFields((current) => ({ ...current, date: "", time: "" }));
+        setAvailabilityError("");
+        setFields((current) => {
+          const day = days.find((item) => item.date === current.date);
+          const valid = day?.slots.some((slot) => slot.time === current.time &&
+            (!slot.teamMemberId || slot.teamMemberId === current.teamMemberId));
+          return { ...current, date: day ? current.date : "", time: valid ? current.time : "" };
+        });
       })
       .catch((error) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (controller.signal.aborted) return;
+        setFields((current) => ({ ...current, date: "", time: "" }));
         setAvailability([]);
         setAvailabilityState("error");
         setAvailabilityError(
@@ -193,7 +211,43 @@ export function AppointmentForm({
         );
       });
     return () => controller.abort();
-  }, [fields.service, fields.teamMemberId]);
+  }, [fields.service, teamFilter, refresh, state.status]);
+
+  useEffect(() => {
+    stepTitle.current?.focus();
+  }, [step]);
+
+  useEffect(() => {
+    if (state.status === "success" || state.status === "submitting") return;
+    function refreshAgenda() {
+      if (document.visibilityState !== "visible") return;
+      setAvailabilityState("loading");
+      setRefresh((value) => value + 1);
+    }
+    window.addEventListener("focus", refreshAgenda);
+    document.addEventListener("visibilitychange", refreshAgenda);
+    const timer = window.setInterval(refreshAgenda, 60_000);
+    return () => {
+      window.removeEventListener("focus", refreshAgenda);
+      document.removeEventListener("visibilitychange", refreshAgenda);
+      window.clearInterval(timer);
+    };
+  }, [state.status]);
+
+  function goToStep(next: number) {
+    setState({ status: "idle", message: "" });
+    setStep(next);
+  }
+
+  function validateSchedule() {
+    if (availabilityState === "loading" || availabilityState === "error") return false;
+    if (availabilityState === "empty") return true;
+    if (fields.date && fields.time && selectedDay?.slots.some((slot) =>
+      slot.time === fields.time && (!slot.teamMemberId || slot.teamMemberId === fields.teamMemberId))) return true;
+    setFieldErrors({ date: fields.date ? undefined : ["Selecciona una fecha disponible."], time: ["Selecciona una hora disponible."] });
+    goToStep(1);
+    return false;
+  }
 
   function updateField(field: keyof AppointmentFields, value: string) {
     setFields((current) => ({ ...current, [field]: value }));
@@ -207,23 +261,19 @@ export function AppointmentForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (state.status === "submitting") return;
 
-    if (availabilityState === "loading") {
-      setState({ status: "error", message: "Espera a que termine de cargar la agenda." });
+    if (step < 3) {
+      if (step === 0 && (!selectedService || selectedSpecialists.length === 0)) return;
+      if (step === 1 && !validateSchedule()) return;
+      if (step === 1) setRequestWithoutTime(availabilityState === "empty");
+      goToStep(step + 1);
       return;
     }
-    if (availabilityState === "ready" && (!fields.date || !fields.time)) {
-      const errors: AppointmentFieldErrors = {};
-      if (!fields.date) errors.date = ["Selecciona una fecha disponible."];
-      if (!fields.time) errors.time = ["Selecciona una hora disponible."];
-      setFieldErrors(errors);
-      setState({
-        status: "error",
-        message: "Selecciona una fecha y una hora disponibles para reservar.",
-      });
+    if ((availabilityState === "empty" && !requestWithoutTime) || !validateSchedule()) {
+      goToStep(1);
       return;
     }
-
     setState({
       status: "submitting",
       message:
@@ -234,6 +284,25 @@ export function AppointmentForm({
     setFieldErrors({});
 
     try {
+      // Revalidate the chosen slot immediately before submitting. The API also
+      // checks availability transactionally when creating the appointment.
+      if (fields.date && fields.time) {
+        const params = new URLSearchParams({ serviceSlug: fields.service, date: fields.date });
+        if (fields.teamMemberId) params.set("teamMemberId", fields.teamMemberId);
+        const check = await fetch(`/api/availability?${params}`, { cache: "no-store" });
+        const latest = await check.json();
+        if (!check.ok || !latest.ok) throw new Error("No pudimos verificar el horario. Intenta de nuevo.");
+        const valid = (latest.days as AvailabilityDay[]).some((day) => day.date === fields.date &&
+          day.slots.some((slot) => slot.time === fields.time && (!slot.teamMemberId || slot.teamMemberId === fields.teamMemberId)));
+        if (!valid) {
+          setFields((current) => ({ ...current, date: "", time: "" }));
+          setAvailabilityState("loading");
+          setRefresh((value) => value + 1);
+          setStep(1);
+          setState({ status: "error", message: "Ese horario ya no está disponible. Elige otro para continuar." });
+          return;
+        }
+      }
       const response = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -251,6 +320,12 @@ export function AppointmentForm({
           new Set(Object.values(errors).flat().filter(Boolean))
         );
         setFieldErrors(errors);
+        if (errors.service || errors.teamMemberId) setStep(0);
+        else if (errors.date || errors.time) {
+          setStep(1);
+          setAvailabilityState("loading");
+          setRefresh((value) => value + 1);
+        } else if (errors.name || errors.phone || errors.email || errors.notes) setStep(2);
         setState({
           status: "error",
           message:
@@ -266,7 +341,7 @@ export function AppointmentForm({
         status: "success",
         message:
           result.message ??
-          "Tu valoración quedó agendada. Conserva el código de confirmación.",
+          "Recibimos tu solicitud. Conserva el código de referencia.",
         confirmation: result.confirmation,
       });
     } catch {
@@ -309,6 +384,10 @@ export function AppointmentForm({
           type="button"
           onClick={() => {
             setFields(initialFields);
+            setTeamFilter(initialFields.teamMemberId);
+            setStep(0);
+            setAvailabilityState("loading");
+            setRefresh((value) => value + 1);
             setFieldErrors({});
             setState({ status: "idle", message: "" });
           }}
@@ -325,23 +404,30 @@ export function AppointmentForm({
       onSubmit={handleSubmit}
       className="tuodonto-glass rounded-[1.75rem] p-4 sm:p-5 md:p-6"
     >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 id={titleId} className="tuodonto-display mt-1.5 text-4xl leading-none text-[var(--tuodonto-brown)] md:text-[2.75rem]">
-            Agenda tu valoración.
-          </h2>
-          <p className="mt-2 text-sm leading-5 text-[var(--tuodonto-taupe)]">
-            Elige modalidad, fecha y hora disponible. Si la agenda no carga,
-            envía tus datos y el equipo te contactará.
-          </p>
-        </div>
-        <div className="hidden size-12 items-center justify-center rounded-full tuodonto-gold-fill md:flex">
-          <CalendarCheck className="size-5" aria-hidden="true" />
-        </div>
+      <div>
+        <p className="tuodonto-eyebrow">Agenda tu cita</p>
+        <h2 id={titleId} className="tuodonto-display mt-2 text-4xl leading-none text-[var(--tuodonto-brown)] md:text-5xl">
+          Un paso más cerca de tu sonrisa.
+        </h2>
+        <ol aria-label="Pasos para agendar" className="mt-7 grid grid-cols-4 gap-2 border-b border-[var(--tuodonto-line)] pb-6">
+          {steps.map((label, index) => <li key={label} aria-current={step === index ? "step" : undefined}>
+            <button type="button" disabled={index >= step || state.status === "submitting"} onClick={() => goToStep(index)}
+              className={cn("tuodonto-focus flex w-full flex-col items-center gap-2 text-center text-xs sm:text-sm", index > step ? "text-[var(--tuodonto-muted)]" : "text-[var(--tuodonto-brown)]")}>
+              <span className={cn("flex size-9 items-center justify-center rounded-full border text-sm font-semibold", index <= step ? "border-[var(--tuodonto-gold)] bg-[var(--tuodonto-gold)] text-white" : "border-[var(--tuodonto-line)] bg-white")}>
+                {index < step ? <Check className="size-4" aria-hidden="true" /> : index + 1}
+              </span>{label}
+            </button>
+          </li>)}
+        </ol>
+        <h3 ref={stepTitle} tabIndex={-1} className="mt-6 scroll-mt-36 text-xl font-semibold text-[var(--tuodonto-brown)] outline-none">
+          {step === 0 ? "¿Qué servicio necesitas?" : step === 1 ? "Elige fecha y hora" : step === 2 ? "Cuéntanos cómo contactarte" : "Revisa tu solicitud"}
+        </h3>
+        <p className="mt-2 text-sm text-[var(--tuodonto-taupe)]">
+          {step === 0 ? "Elige el servicio y quién puede atenderte." : step === 1 ? "Estos horarios se consultan directamente en nuestra agenda." : step === 2 ? "Usaremos estos datos para gestionar tu cita." : "Confirma los datos antes de enviar."}
+        </p>
       </div>
-
-      <ConsultationPayment slug={fields.service} />
-      <div className="mt-5 grid gap-x-4 gap-y-3.5 md:grid-cols-2">
+      <div className="mt-5 grid gap-x-4 gap-y-5 md:grid-cols-2">
+        {step === 0 && <>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Servicio
           <Select
@@ -349,6 +435,7 @@ export function AppointmentForm({
             onValueChange={(value) => {
               const service = services.find((item) => item.slug === value);
               const professionals = professionalsForService(service, teamMembers);
+              setTeamFilter(professionals.length === 1 ? professionals[0].id : "");
               setAvailabilityState("loading");
               setAvailabilityError("");
               setFields((current) => ({
@@ -392,11 +479,12 @@ export function AppointmentForm({
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Especialista
           <Select
-            value={fields.teamMemberId || ANY_TEAM_VALUE}
+            value={teamFilter || ANY_TEAM_VALUE}
             disabled={selectedSpecialists.length === 0}
             onValueChange={(value) => {
               const teamMemberId =
                 value === ANY_TEAM_VALUE ? "" : value ?? "";
+              setTeamFilter(teamMemberId);
               setAvailabilityState("loading");
               setAvailabilityError("");
               setFields((current) => ({
@@ -423,7 +511,7 @@ export function AppointmentForm({
               className={cn(fieldClass, "h-12 w-full rounded-[1rem] bg-white/72")}
             >
               <SelectValue>
-                {selectedSpecialist?.name ??
+                {filteredSpecialist?.name ??
                   (selectedSpecialists.length > 0
                     ? "Primero disponible"
                     : "Sin profesionales activos")}
@@ -443,8 +531,8 @@ export function AppointmentForm({
             </SelectContent>
           </Select>
           <span id="appointment-specialist-help" className="block text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]">
-            {selectedSpecialist
-              ? selectedSpecialist.specialty
+            {filteredSpecialist
+              ? filteredSpecialist.specialty
               : selectedSpecialists.length > 0
                 ? "La clínica asignará el primer profesional disponible."
                 : "No hay profesionales activos para este servicio."}
@@ -455,6 +543,8 @@ export function AppointmentForm({
             </span>
           ) : null}
         </label>
+        </>}
+        {step === 1 && (availabilityState === "ready" || availabilityState === "loading") && <>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Fecha disponible
           <select
@@ -490,8 +580,6 @@ export function AppointmentForm({
           </select>
           <span id="appointment-date-help" className="block text-xs font-normal leading-4 text-[var(--tuodonto-taupe)]" aria-live="polite">
             {availabilityState === "loading" && "Consultando agenda real…"}
-            {availabilityState === "empty" && "No hay horarios publicados; enviaremos tu solicitud para coordinarla."}
-            {availabilityState === "error" && `${availabilityError} Puedes enviar la solicitud y te contactaremos.`}
             {availabilityState === "ready" && !fields.date && "Elige una de las fechas con disponibilidad real."}
           </span>
           {firstFieldError(fieldErrors, "date") ? (
@@ -534,6 +622,8 @@ export function AppointmentForm({
             </span>
           ) : null}
         </fieldset>
+        </>}
+        {step === 2 && <>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
           Nombre completo
           <input
@@ -609,9 +699,10 @@ export function AppointmentForm({
             ))}
           </select>
         </label>
+        </>}
       </div>
 
-      <label className="mt-3.5 block space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
+      {step === 2 && <label className="mt-3.5 block space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
         Comentario
         <textarea
           value={fields.notes}
@@ -627,11 +718,27 @@ export function AppointmentForm({
             {firstFieldError(fieldErrors, "notes")}
           </span>
         ) : null}
-      </label>
+      </label>}
 
+      {step === 3 && <>
+      <dl className="mt-5 divide-y divide-[var(--tuodonto-line)] rounded-2xl border border-[var(--tuodonto-line)] bg-white/60 px-5">
+        {[
+          ["Servicio", selectedService?.name],
+          ["Profesional", selectedSpecialist?.name || "Primero disponible"],
+          ["Fecha y hora", fields.date && fields.time ? `${selectedDay?.dayName ?? ""} ${fields.date} · ${fields.time}` : "Sin horario reservado · Por coordinar"],
+          ["Nombre", fields.name], ["Teléfono", fields.phone], ["Correo", fields.email],
+        ].filter(([, value]) => value).map(([label, value]) => <div key={label} className="grid gap-1 py-4 sm:grid-cols-[9rem_1fr]">
+          <dt className="text-sm text-[var(--tuodonto-taupe)]">{label}</dt><dd className="break-words text-sm font-semibold text-[var(--tuodonto-brown)]">{value}</dd>
+        </div>)}
+      </dl>
+      {consultationRate(fields.service) ? <ConsultationPayment slug={fields.service} /> : <div className="mt-4 rounded-2xl bg-[var(--tuodonto-pearl)] p-5">
+        <p className="text-sm text-[var(--tuodonto-taupe)]">Valor del servicio</p>
+        <p className="mt-2 text-2xl font-semibold text-[var(--tuodonto-brown)]">{selectedService?.priceFrom != null ? `Desde ${formatCOP(selectedService.priceFrom)} COP` : "Por confirmar con el equipo"}</p>
+      </div>}
       <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-[var(--tuodonto-taupe)]">
         <input
           type="checkbox"
+          disabled={state.status === "submitting"}
           checked={fields.consent}
           onChange={(event) =>
             setFields((current) => ({ ...current, consent: event.target.checked }))
@@ -644,27 +751,28 @@ export function AppointmentForm({
         </span>
       </label>
 
+      </>}
+
+      {step === 1 && (availabilityState === "empty" || availabilityState === "error") && <div role="status" className="mt-4 rounded-2xl bg-[var(--tuodonto-pearl)] p-5 text-sm leading-6">
+        <p>{availabilityState === "empty" ? "No hay horarios publicados para este servicio y profesional en los próximos 30 días. Puedes solicitar que coordinemos tu cita, sin reservar una fecha." : availabilityError}</p>
+        <button type="button" onClick={() => { setState({ status: "idle", message: "" }); setAvailabilityState("loading"); setRefresh((value) => value + 1); }} className="tuodonto-focus mt-3 inline-flex items-center gap-2 font-semibold underline underline-offset-4"><RefreshCw className="size-4" aria-hidden="true" />Volver a consultar</button>
+      </div>}
+
       {state.status === "error" && (
         <div role="alert" className="mt-4 rounded-[1rem] border border-[rgba(184,82,71,.25)] bg-[rgba(184,82,71,.1)] px-4 py-3 text-sm text-[var(--tuodonto-danger)]">
-          <p className="font-semibold">No pudimos enviar la solicitud.</p>
+          <p className="font-semibold">Revisa tu solicitud.</p>
           <p className="mt-1 leading-5">{state.message}</p>
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={state.status === "submitting" || availabilityState === "loading"}
-        className="tuodonto-focus mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full tuodonto-gold-fill px-6 text-sm font-semibold transition hover:-translate-y-0.5 disabled:opacity-60 md:w-auto"
-      >
-        {state.status === "submitting" ? (
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        ) : (
-          <Send className="size-4" aria-hidden="true" />
-        )}
-        {state.status === "submitting"
-          ? availabilityState === "ready" ? "Agendando…" : "Enviando…"
-          : availabilityState === "ready" ? "Agendar valoración" : "Enviar solicitud"}
-      </button>
+      <div className="mt-6 flex flex-col-reverse gap-3 border-t border-[var(--tuodonto-line)] pt-5 sm:flex-row sm:justify-between">
+        {step > 0 ? <button type="button" disabled={state.status === "submitting"} onClick={() => goToStep(step - 1)} className="tuodonto-focus inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--tuodonto-line)] px-6 text-sm font-semibold"><ArrowLeft className="size-4" aria-hidden="true" />Atrás</button> : <span />}
+        <button type="submit" disabled={state.status === "submitting" || (step === 0 && (!selectedService || selectedSpecialists.length === 0)) || ((step === 1 || step === 3) && (availabilityState === "loading" || availabilityState === "error"))}
+          className="tuodonto-focus inline-flex min-h-12 items-center justify-center gap-2 rounded-full tuodonto-gold-fill px-6 text-sm font-semibold transition hover:-translate-y-0.5 disabled:opacity-60">
+          {state.status === "submitting" ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : step === 3 ? <Send className="size-4" aria-hidden="true" /> : <ArrowRight className="size-4" aria-hidden="true" />}
+          {state.status === "submitting" ? "Enviando…" : step === 3 ? fields.date && fields.time ? "Confirmar cita" : "Enviar solicitud sin horario" : step === 1 && availabilityState === "empty" ? "Solicitar contacto sin horario" : step === 2 ? "Revisar solicitud" : "Continuar"}
+        </button>
+      </div>
     </form>
   );
 }

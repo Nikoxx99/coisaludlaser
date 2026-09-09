@@ -355,7 +355,7 @@ export async function PublicShell({
         </footer>
       </main>
 
-      <div className={`fixed inset-x-3 bottom-3 z-50 grid gap-2 rounded-full border border-white/70 bg-[rgba(247,246,243,.9)] p-2 shadow-[0_20px_60px_rgba(4,21,67,.16)] backdrop-blur-2xl lg:hidden ${navigation.public.citas ? "grid-cols-2" : "grid-cols-1"}`}>
+      {active !== "citas" && <div className={`fixed inset-x-3 bottom-3 z-50 grid gap-2 rounded-full border border-white/70 bg-[rgba(247,246,243,.9)] p-2 shadow-[0_20px_60px_rgba(4,21,67,.16)] backdrop-blur-2xl lg:hidden ${navigation.public.citas ? "grid-cols-2" : "grid-cols-1"}`}>
         {navigation.public.citas ? (
           <Link
             href="/citas"
@@ -374,7 +374,7 @@ export async function PublicShell({
           <MessageCircle className="size-4" aria-hidden="true" />
           WhatsApp
         </a>
-      </div>
+      </div>}
     </div>
   );
 }

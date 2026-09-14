@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ConsultationPayment } from "./consultation-payment";
 import { consultationRate, formatCOP } from "@/lib/consultation-payments";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, RefreshCw, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Download, Loader2, RefreshCw, Send } from "lucide-react";
 
 import type { Service, TeamMember } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -153,6 +153,9 @@ export function AppointmentForm({
   );
   const [availabilityError, setAvailabilityError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<AppointmentFieldErrors>({});
+  const [receiptState, setReceiptState] = useState<
+    "idle" | "downloading" | "ready" | "error"
+  >("idle");
   const selectedService = services.find(
     (service) => service.slug === fields.service
   );
@@ -162,6 +165,30 @@ export function AppointmentForm({
   );
   const filteredSpecialist = selectedSpecialists.find((member) => member.id === teamFilter);
   const selectedDay = availability.find((day) => day.date === fields.date);
+
+  async function downloadReceipt(confirmation: string) {
+    if (!fields.date || !fields.time) return;
+    setReceiptState("downloading");
+    try {
+      const { downloadAppointmentReceipt } = await import(
+        "@/lib/appointment-receipt"
+      );
+      await downloadAppointmentReceipt({
+        confirmation,
+        serviceName: selectedService?.name ?? fields.service,
+        professionalName: selectedSpecialist?.name ?? "Equipo disponible",
+        date: fields.date,
+        time: fields.time,
+        patientName: fields.name,
+        phone: fields.phone,
+        email: fields.email,
+        siteHost: window.location.host,
+      });
+      setReceiptState("ready");
+    } catch {
+      setReceiptState("error");
+    }
+  }
 
   useEffect(() => {
     if (!fields.service || state.status === "submitting" || state.status === "success") return;
@@ -348,6 +375,9 @@ export function AppointmentForm({
           "Recibimos tu solicitud. Conserva el código de referencia.",
         confirmation: result.confirmation,
       });
+      if (fields.date && fields.time) {
+        void downloadReceipt(result.confirmation);
+      }
     } catch {
       setState({
         status: "error",
@@ -384,21 +414,46 @@ export function AppointmentForm({
           </p>
         </div>
         <ConsultationPayment slug={fields.service} registered scheduled={Boolean(fields.date && fields.time)} />
-        <button
-          type="button"
-          onClick={() => {
-            setFields(initialFields);
-            setTeamFilter(initialFields.teamMemberId);
-            setStep(0);
-            setAvailabilityState("loading");
-            setRefresh((value) => value + 1);
-            setFieldErrors({});
-            setState({ status: "idle", message: "" });
-          }}
-          className="tuodonto-focus mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full tuodonto-sky-fill px-5 text-sm font-semibold transition hover:-translate-y-0.5"
-        >
-          Agendar otra valoración
-        </button>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          {fields.date && fields.time ? (
+            <button
+              type="button"
+              onClick={() => void downloadReceipt(state.confirmation)}
+              disabled={receiptState === "downloading"}
+              className="tuodonto-focus inline-flex min-h-12 items-center justify-center gap-2 rounded-full tuodonto-gold-fill px-5 text-sm font-semibold transition hover:-translate-y-0.5 disabled:opacity-60"
+            >
+              {receiptState === "downloading" ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Download className="size-4" aria-hidden="true" />
+              )}
+              {receiptState === "downloading"
+                ? "Preparando comprobante"
+                : "Descargar comprobante PDF"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              setFields(initialFields);
+              setTeamFilter(initialFields.teamMemberId);
+              setStep(0);
+              setAvailabilityState("loading");
+              setRefresh((value) => value + 1);
+              setFieldErrors({});
+              setReceiptState("idle");
+              setState({ status: "idle", message: "" });
+            }}
+            className="tuodonto-focus inline-flex min-h-12 items-center justify-center gap-2 rounded-full tuodonto-sky-fill px-5 text-sm font-semibold transition hover:-translate-y-0.5"
+          >
+            Agendar otra valoración
+          </button>
+        </div>
+        {receiptState === "error" ? (
+          <p role="alert" className="mt-3 text-sm text-[var(--tuodonto-danger)]">
+            No pudimos descargarlo automáticamente. Intenta de nuevo.
+          </p>
+        ) : null}
       </div>
     );
   }

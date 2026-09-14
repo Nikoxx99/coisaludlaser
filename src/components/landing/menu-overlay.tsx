@@ -37,6 +37,9 @@ export function MenuOverlay({
       <div className="ed-menu-foot">
         <span>{data.brand.address}</span>
         <a href={`tel:${data.brand.phone}`}>{data.brand.phone}</a>
+        <a href={data.brand.paymentHref} target="_blank" rel="noreferrer">
+          Pagar en Wompi
+        </a>
         <a href={data.brand.whatsappHref} target="_blank" rel="noreferrer">
           Escríbenos por WhatsApp
         </a>

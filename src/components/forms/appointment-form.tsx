@@ -23,6 +23,7 @@ type AppointmentFields = {
   phone: string;
   email: string;
   discoverySource: string;
+  referrerName: string;
   notes: string;
   date: string;
   time: string;
@@ -126,6 +127,7 @@ export function AppointmentForm({
       phone: "",
       email: "",
       discoverySource: "",
+      referrerName: "",
       notes: "",
       date: "",
       time: "",
@@ -325,7 +327,9 @@ export function AppointmentForm({
           setStep(1);
           setAvailabilityState("loading");
           setRefresh((value) => value + 1);
-        } else if (errors.name || errors.phone || errors.email || errors.notes) setStep(2);
+        } else if (
+          errors.name || errors.phone || errors.email || errors.referrerName || errors.notes
+        ) setStep(2);
         setState({
           status: "error",
           message:
@@ -686,9 +690,12 @@ export function AppointmentForm({
           De dónde nos conociste
           <select
             value={fields.discoverySource}
-            onChange={(event) =>
-              updateField("discoverySource", event.target.value)
-            }
+            onChange={(event) => {
+              updateField("discoverySource", event.target.value);
+              if (event.target.value !== "Referido") {
+                updateField("referrerName", "");
+              }
+            }}
             className={cn(fieldClass, "appearance-none")}
           >
             <option value="">Selecciona una opción</option>
@@ -699,6 +706,21 @@ export function AppointmentForm({
             ))}
           </select>
         </label>
+        {fields.discoverySource === "Referido" ? (
+          <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
+            ¿Quién te recomendó?
+            <input
+              type="text"
+              value={fields.referrerName}
+              onChange={(event) => updateField("referrerName", event.target.value)}
+              className={fieldClass}
+              placeholder="Nombre de la persona"
+              maxLength={120}
+              autoComplete="off"
+              aria-invalid={Boolean(firstFieldError(fieldErrors, "referrerName"))}
+            />
+          </label>
+        ) : null}
         </>}
       </div>
 
@@ -727,6 +749,7 @@ export function AppointmentForm({
           ["Profesional", selectedSpecialist?.name || "Primero disponible"],
           ["Fecha y hora", fields.date && fields.time ? `${selectedDay?.dayName ?? ""} ${fields.date} · ${fields.time}` : "Sin horario reservado · Por coordinar"],
           ["Nombre", fields.name], ["Teléfono", fields.phone], ["Correo", fields.email],
+          ["Te recomendó", fields.referrerName],
         ].filter(([, value]) => value).map(([label, value]) => <div key={label} className="grid gap-1 py-4 sm:grid-cols-[9rem_1fr]">
           <dt className="text-sm text-[var(--tuodonto-taupe)]">{label}</dt><dd className="break-words text-sm font-semibold text-[var(--tuodonto-brown)]">{value}</dd>
         </div>)}

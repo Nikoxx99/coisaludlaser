@@ -205,16 +205,26 @@ export function LandingEditorial({ data }: { data: EditorialLandingData }) {
         <span className="ed-mobile-index" aria-hidden="true">
           <strong>{String(activeScene + 1).padStart(2, "0")}</strong> / {String(SCENE_COUNT).padStart(2, "0")}
         </span>
-        <button
-          ref={menuButtonRef}
-          type="button"
-          className="ed-menu-button"
-          aria-expanded={menuOpen}
-          aria-controls="ed-menu"
-          onClick={() => setMenuOpen(true)}
-        >
-          Menú
-        </button>
+        <div className="ed-topbar-actions">
+          <a
+            className="ed-payment-link"
+            href={data.brand.paymentHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Pagar <span>en Wompi</span>
+          </a>
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="ed-menu-button"
+            aria-expanded={menuOpen}
+            aria-controls="ed-menu"
+            onClick={() => setMenuOpen(true)}
+          >
+            Menú
+          </button>
+        </div>
       </header>
 
       {menuOpen ? <MenuOverlay data={data} onClose={() => setMenuOpen(false)} /> : null}

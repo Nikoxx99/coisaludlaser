@@ -10,6 +10,7 @@ import {
   getSiteSettings,
 } from "@/lib/repository";
 import { getOptimizedEditorialAsset } from "@/lib/editorial-assets";
+import { WOMPI_CONSULTATION_URL } from "@/lib/consultation-payments";
 import { getTuOdontoAdminUrl } from "@/lib/tuodonto-api";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function Home() {
       phone: settings.phone,
       whatsappHref,
       mapsHref,
+      paymentHref: WOMPI_CONSULTATION_URL,
       adminHref: getTuOdontoAdminUrl(),
     },
     nav,

@@ -131,6 +131,41 @@ body:has(.ed-root) {
   font-weight: 900;
 }
 
+.ed-topbar-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.8rem, 2vw, 1.5rem);
+}
+
+.ed-payment-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0 1.1rem;
+  color: currentColor;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.ed-payment-link:hover {
+  border-color: var(--ed-blue-bright);
+  background: var(--ed-blue-bright);
+  color: #fff;
+}
+
+.ed-topbar.is-dark .ed-payment-link:hover {
+  border-color: var(--ed-cyan);
+  background: var(--ed-cyan);
+  color: var(--ed-navy);
+}
+
 .ed-mobile-index {
   display: none;
   font-size: 0.85rem;
@@ -146,7 +181,6 @@ body:has(.ed-root) {
 }
 
 .ed-menu-button {
-  justify-self: end;
   min-width: 3.5rem;
   min-height: 2.75rem;
   padding: 0;
@@ -1052,6 +1086,20 @@ body:has(.ed-root) {
   .ed-logo img {
     height: 2.15rem;
     max-width: 7rem;
+  }
+
+  .ed-topbar-actions {
+    gap: 0.6rem;
+  }
+
+  .ed-payment-link {
+    min-height: 2.5rem;
+    padding: 0 0.8rem;
+    font-size: 0.78rem;
+  }
+
+  .ed-payment-link span {
+    display: none;
   }
 
   .ed-mobile-index {

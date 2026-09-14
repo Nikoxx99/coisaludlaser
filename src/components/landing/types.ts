@@ -20,6 +20,7 @@ export type EditorialLandingData = {
     phone: string;
     whatsappHref: string;
     mapsHref: string;
+    paymentHref: string;
     adminHref: string;
   };
   nav: EditorialNavItem[];

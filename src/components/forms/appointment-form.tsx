@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ConsultationPayment } from "./consultation-payment";
 import { consultationRate, formatCOP } from "@/lib/consultation-payments";
+import { colombianMobileError, normalizeColombianMobile } from "@/lib/colombian-mobile";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Download, Loader2, RefreshCw, Send } from "lucide-react";
 
 import type { Service, TeamMember } from "@/lib/types";
@@ -296,6 +297,10 @@ export function AppointmentForm({
       if (step === 0 && (!selectedService || selectedSpecialists.length === 0)) return;
       if (step === 1 && !validateSchedule()) return;
       if (step === 1) setRequestWithoutTime(availabilityState === "empty");
+      if (step === 2 && !normalizeColombianMobile(fields.phone)) {
+        setFieldErrors((current) => ({ ...current, phone: [colombianMobileError] }));
+        return;
+      }
       goToStep(step + 1);
       return;
     }
@@ -704,15 +709,21 @@ export function AppointmentForm({
           ) : null}
         </label>
         <label className="space-y-2 text-sm font-semibold text-[var(--tuodonto-brown)]">
-          Teléfono / WhatsApp
+          Celular / WhatsApp
           <input
             type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
             value={fields.phone}
             onChange={(event) => updateField("phone", event.target.value)}
+            onBlur={() => {
+              if (fields.phone && !normalizeColombianMobile(fields.phone)) {
+                setFieldErrors((current) => ({ ...current, phone: [colombianMobileError] }));
+              }
+            }}
             className={fieldClass}
-            placeholder="321 000 0000"
-            minLength={7}
-            maxLength={30}
+            placeholder="300 123 4567"
+            maxLength={16}
             aria-invalid={Boolean(firstFieldError(fieldErrors, "phone"))}
             aria-describedby={firstFieldError(fieldErrors, "phone") ? "appointment-phone-error" : undefined}
             required
